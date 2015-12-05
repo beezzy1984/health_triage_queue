@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tryton>
+    <data>
+        <!-- Queue Icon -->
+        <!-- Queue Call Button Icon -->
+        <!-- Triage Icon -->
+
+        <!-- QueueEntry Views -->
+
+        <!-- Form/Tree Action for Queue Entries -->
+
+        <!-- TriageEntry Views -->
+
+    </data>
+</tryton>
