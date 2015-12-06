@@ -2,14 +2,117 @@
 <tryton>
     <data>
         <!-- Queue Icon -->
+        <record model="ir.ui.icon" id="gnuhealth_icon_queue_entry">
+            <field name="name">health-queue-entry</field>
+            <field name="path">icons/appointment_queue.svg</field>
+        </record>
         <!-- Queue Call Button Icon -->
+        <record model="ir.ui.icon" id="gnuhealth_icon_queue_call">
+            <field name="name">health-queue-call</field>
+            <field name="path">icons/patient-open.svg</field>
+        </record>
         <!-- Triage Icon -->
+        <record model="ir.ui.icon" id="gnuhealth_icon_triage-normal">
+            <field name="name">health-triage-normal</field>
+            <field name="path">icons/triage.svg</field>
+        </record>
+
+        <record model="ir.ui.icon" id="gnuhealth_icon_triage-green">
+            <field name="name">health-triage-green</field>
+            <field name="path">icons/triage-green.svg</field>
+        </record>
+        <record model="ir.ui.icon" id="gnuhealth_icon_triage-amber">
+            <field name="name">health-triage-amber</field>
+            <field name="path">icons/triage-amber.svg</field>
+        </record>
+        <record model="ir.ui.icon" id="gnuhealth_icon_triage-red">
+            <field name="name">health-triage-red</field>
+            <field name="path">icons/triage-red.svg</field>
+        </record>
 
         <!-- QueueEntry Views -->
+        <record model="ir.ui.view" id="health_view_form_queue">
+            <field name="model">gnuhealth.patient.queue_entry</field>
+            <field name="type">form</field>
+            <field name="name">form-queue_entry</field>
+        </record>
+        <record model="ir.ui.view" id="health_view_tree_queue">
+            <field name="model">gnuhealth.patient.queue_entry</field>
+            <field name="type">tree</field>
+            <field name="name">tree-queue_entry</field>
+        </record>
+        <record model="ir.action.act_window" id="health_actwin_queue_entry">
+            <field name="name">Patient Queue</field>
+            <field name="res_model">gnuhealth.patient.queue_entry</field>
+        </record>
+        <record model="ir.action.act_window.view" id="health_actview_queue_entry_tree">
+            <field name="sequence" eval="10" />
+            <field name="view" ref="health_view_tree_queue" />
+            <field name="act_window" ref="health_actwin_queue_entry" />
+        </record>
+        <record model="ir.action.act_window.view" id="health_actview_queue_entry_form">
+            <field name="sequence" eval="20" />
+            <field name="view" ref="health_view_form_queue" />
+            <field name="act_window" ref="health_actwin_queue_entry" />
+        </record>
+        <!-- Act_window.domain records defined to create tabs in the tree -->
+        <record model="ir.action.act_window.domain" id="health_actwindom-queue-state1">
+            <field name="name">Walk-In/Triage</field>
+            <field name="domain">[('busy', '=', False), ('appointment_state', '=', '1')]</field>
+            <field name="sequenct" eval="10" />
+            <field name="act_window" ref="health_actwin_queue_entry" />
+        </record>
+        <record model="ir.action.act_window.domain" id="health_actwindom-queue-state2">
+            <field name="name">Nurse</field>
+            <field name="domain">[('busy', '=', False), ('appointment_state', '=', '2'), ]</field>
+            <field name="sequenct" eval="20" />
+            <field name="act_window" ref="health_actwin_queue_entry" />
+        </record>
+        <record model="ir.action.act_window.domain" id="health_actwindom-queue-busy">
+            <field name="name">Busy</field>
+            <field name="domain">[('busy', '=', True)]</field>
+            <field name="sequenct" eval="9990" />
+            <field name="act_window" ref="health_actwin_queue_entry" />
+        </record>
+        <record model="ir.action.act_window.domain" id="health_actwindom-queue-all">
+            <field name="name">All</field>
+            <field name="domain"></field>
+            <field name="sequenct" eval="9999" />
+            <field name="act_window" ref="health_actwin_queue_entry" />
+        </record>
+
+        <!-- put Queue menu under Health/Appointments -->
+        <menuitem id="health_menu_patient_triage_queue"
+            action="health_actwin_queue_entry" icon="health-queue-entry" />
 
         <!-- Form/Tree Action for Queue Entries -->
 
         <!-- TriageEntry Views -->
+        <record model="ir.ui.view" id="health_view_form_triage_entry">
+            <field name="model">gnuhealth.triage.entry</field>
+            <field name="type">form</field>
+            <field name="name">form-triage_entry</field>
+        </record>
+        <record model="ir.ui.view" id="health_view_tree_triage_entry">
+            <field name="model">gnuhealth.triage.entry</field>
+            <field name="type">tree</field>
+            <field name="name">tree-triage_entry</field>
+        </record>
+        <record model="ir.action.act_window" id="health_actwin_triage_entry">
+            <field name="name">Triage Entry</field>
+            <field name="res_model">gnuhealth.triage.entry</field>
+        </record>
+        <record model="ir.action.act_window.view" id="health_actview_triage_entry_tree">
+            <field name="sequence" eval="10" />
+            <field name="view" ref="health_view_tree_triage_entry" />
+            <field name="act_window" ref="health_actwin_triage_entry" />
+        </record>
+        <record model="ir.action.act_window.view" id="health_actview_triage_entry_form">
+            <field name="sequence" eval="20" />
+            <field name="view" ref="health_view_form_triage_entry" />
+            <field name="act_window" ref="health_actwin_triage_entry" />
+        </record>
+
 
     </data>
 </tryton>
