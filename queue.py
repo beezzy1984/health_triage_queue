@@ -40,6 +40,10 @@ class QueueEntry(ModelSQL, ModelView):
                           'get_sex', searcher='search_sex')
     age = fields.Function(fields.Char('Age'), 'get_age')  #, searcher='search_age')
     notes = fields.Function(fields.Text('Notes/Info'), 'get_notes_info')
+    last_touch = fields.Function(fields.DateTime('Last Modified'),
+                                 'get_last_touch')
+    last_toucher = fields.Function(fields.Char('Last Modified By'),
+                                   'get_last_touch')
 
     @staticmethod
     def default_busy():
@@ -61,6 +65,23 @@ class QueueEntry(ModelSQL, ModelView):
         out.update([(x.id, x.triage_entry.name) for x in instances
                     if x.triage_entry and not x.appointment])
         return out
+
+    @classmethod
+    def get_last_touch(cls, instances, name):
+        if name == 'last_touch':
+            return dict([(x.id, x.write_date or x.create_date)
+                        for x in instances])
+        elif name == 'last_toucher':
+            pooler = Pool()
+            touchers = [(x.id, x.write_uid or x.create_uid) for x in instances]
+            Party = pooler.get('party.party')
+            parties = Party.search_read(
+                [('internal_user', 'in', [x[1] for x in touchers])],
+                fields_names=['name', 'id', 'internal_user'])
+            parties = dict([(x.internal_user, x.name) for x in parties])
+            touch_parties = [(x, parties.get(y.id, y.name))
+                             for x, y in touchers]
+            return dict(touch_parties)
 
     @classmethod
     def search_patient_name(cls, name, clause):
