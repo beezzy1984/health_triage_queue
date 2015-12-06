@@ -6,7 +6,7 @@
     <field name="sex" />
     <!-- <field name="specialty" /> -->
     <field name="entry_state" />
-    <field name="write_date" />
+    <field name="write_date" widget="text" />
     <field name="encounter_components" />
     <field name="encounter_component_count" />
     <!-- <button string="Call" name="btn_call" /> -->

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form string="Triage Entry" col="12">
+    <group col="8" colspan="12" id="triage_header">
+        <label name="patient" />
+        <field name="patient" colspan="2"/>
+        <label name="upi" />
+        <field name="upi" />
+        <label name="status" />
+        <field name="status" />
+        <newline />
+        <label string="Name (last, first)" id="lbl_name_fields" />
+        <field name="lastname" />
+        <field name="firstname" />
+        <label name="sex" />
+        <field name="sex" />
+        <label name="age" />
+        <field name="age" />
+    </group>
+    <newline />
+    <group col="6" colspan="12" id="triage_notes">
+        <label name="id_type" />
+        <field name="id_type" />
+        <label name="id_number" />
+        <field name="id_number" />
+        <newline />
+        <label name="injury" />
+        <field name="injury" />
+        <label name="review" />
+        <field name="review" />
+        <label name="priority" />
+        <field name="priority" />
+    </group>
+    <group string="Notes" id="grp_triage_notes" colspan="12">
+        <field name="notes" colspan="12" />
+    </group>
+</form>

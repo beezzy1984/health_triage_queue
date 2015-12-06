@@ -40,14 +40,14 @@ class TriageEntry(ModelSQL, ModelView):
     sex = fields.Selection(SEX_OPTIONS, 'Sex', states=REQD_IF_NOPATIENT)
     age = fields.Char('Age', states=REQD_IF_NOPATIENT)
     id_type = fields.Selection(ID_TYPES, 'ID Type', states={
-        'required': Bool(Eval('id_number'))})
+        'required': Bool(Eval('id_number'))}, sort=False)
     id_number = fields.Char('ID Number')
     id_display = fields.Function(fields.Char('ID Display'), 'get_id_display')
-    patient = fields.Many2One('gnuheath.patient', 'Patient')
+    patient = fields.Many2One('gnuhealth.patient', 'Patient')
     priority = fields.Selection(TRIAGE_PRIO, 'Priority')
     injury = fields.Boolean('Injury')
     review = fields.Boolean('Review')
-    status = fields.Selection(TRIAGE_STATUS, 'Status')
+    status = fields.Selection(TRIAGE_STATUS, 'Status', sort=False)
     notes = fields.Text('Notes')
     upi = fields.Function(fields.Char('UPI'), 'get_patient_party_field')
     name = fields.Function(fields.Char('Name'), 'get_name',
@@ -55,6 +55,14 @@ class TriageEntry(ModelSQL, ModelView):
     patient_search = fields.Function(fields.One2Many(
                                      'gnuhealth.patient', None, 'Patients'),
                                      'patient_search_result')
+
+    @staticmethod
+    def default_priority():
+        return '0'
+
+    @staticmethod
+    def default_status():
+        return 'pending'
 
     @classmethod
     def get_name(cls, instances, name):
@@ -75,19 +83,17 @@ class TriageEntry(ModelSQL, ModelView):
 
     @classmethod
     def get_patient_party_field(cls, instances, name):
-
+        out = dict([(i.id, '') for i in instances])
         if name == 'name':
             out = dict([(i.id, i.patient.puid) for i in instances
                         if i.patient])
-            out.update([(i.id, '') for i in instances if not i.patient])
-        else:
-            out = {}
         return out
 
     def get_id_display(self, name):
         idtypedict = dict(ID_TYPES)
         if self.id_number and self.id_type:
-            return ': '.join([idtypedict.get(x.id_type), x.id_number])
+            return ': '.join([idtypedict.get(self.id_type, '??'),
+                              self.id_number])
         else:
             return ''
 

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form string="Queue Entry" col="6">
+    <group id="queue_header" col="6">
+        <field name="name" colspan="2" />
+        <label name="upi_mrn_id" />
+        <field name="upi_mrn_id" />
+        <field name="sex" />
+        <field name="age" />
+        <newline />
+        <field name="encounter_components" colspan="2" />
+        <label name="encounter_component_count" />
+        <field name="encounter_component_count" />
+        <field name="entry_state" />
+        <group id="busy_box" col="2" colspan="1">
+            <label name="busy" />
+            <field name="busy" />
+        </group>
+    </group>
+    <newline />
+    <group id="queue_item_detail" col="6">
+        <label name="triage_entry" />
+        <field name="triage_entry" />
+        <label name="appointment" />
+        <field name="appointment" />
+        <label name="encounter" />
+        <field name="encounter" />
+    </group>
+    <newline />
+    <group id="queue_item_notes" string="Notes/Comments">
+        <field name="notes" colspan="6" />
+    </group>
+    <newline />
+    <group id="queue_item_buttons">
+        <label id="button_space_label" string="Buttons Go Here" />
+    </group>
+
+</form>

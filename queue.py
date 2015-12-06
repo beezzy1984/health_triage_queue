@@ -41,6 +41,19 @@ class QueueEntry(ModelSQL, ModelView):
     age = fields.Function(fields.Char('Age'), 'get_age')  #, searcher='search_age')
     notes = fields.Function(fields.Text('Notes/Info'), 'get_notes_info')
 
+    @staticmethod
+    def default_busy():
+        return False
+
+    @staticmethod
+    def default_active():
+        return True
+
+    @classmethod
+    def __setup__(cls):
+        super(QueueEntry, cls).__setup__()
+        cls.write_date.string = 'Last Modified'
+
     @classmethod
     def get_patient_name(cls, instances, name):
         out = dict([(x.id, x.appointment.patient.name.name) for x in instances
@@ -61,13 +74,24 @@ class QueueEntry(ModelSQL, ModelView):
 
     @classmethod
     def get_upi_mrn_id(cls, instances, name):
-        out = dict([(x.id, 'UPI:%s  | MRN: %s' % (
+        out = dict([(x.id, '%s ; %s' % (
                         x.appointment.patient.puid,
                         x.appointment.patient.medical_record_num))
                     for x in instances if x.appointment])
 
         out.update([(x.id, x.triage_entry.id_display)
                     for x in instances if x.triage_entry and not x.appointment])
+        return out
+        # out = {}
+        # for x in instances:
+        #     if x.appointment:
+        #         out[x.id] = 'UPI:%s  | MRN: %s' % (
+        #                 x.appointment.patient.puid,
+        #                 x.appointment.patient.medical_record_num)
+        #     elif x.triage_entry:
+        #         out[x.id] = x.triage_entry.id_display
+        #     else:
+        #         out[x.id] = ''
 
     @classmethod
     def search_upi_mrn_id(cls, name, clause):
@@ -103,18 +127,17 @@ class QueueEntry(ModelSQL, ModelView):
     # get_qentry_state: return one from QUEUE_ENTRY_STATES based
     # on the state of the associated appointment and encounter
     def get_qentry_state(self, name):
-        if name == 'appointment_state':
-            if self.appointment:
-                if self.appointment.state == 'arrived':
-                    return '3'
-                elif self.appointment.state == 'processing':
-                    return '4'
-                elif self.appointment.state in ['done', 'user_cancelled',
-                                                'center_cancelled', 'no_show']:
-                    return '99'
-            elif self.triage_entry and self.triage_entry.status in [
-                    'tobeseen', 'resched', 'refer']:
-                return '2'
+        if self.appointment:
+            if self.appointment.state == 'arrived':
+                return '3'
+            elif self.appointment.state == 'processing':
+                return '4'
+            elif self.appointment.state in ['done', 'user_cancelled',
+                                            'center_cancelled', 'no_show']:
+                return '99'
+        elif self.triage_entry and self.triage_entry.status in [
+                'tobeseen', 'resched', 'refer']:
+            return '2'
         return '1'
 
     # search_qentry_state: domain that searches queueEntries based
@@ -124,7 +147,7 @@ class QueueEntry(ModelSQL, ModelView):
         field, operator, operand = clause
         if operator == '=':
             # the easy one and maybe the only one we'll need since
-            # appointment_state is a selection field
+            # entry_state is a selection field
             if operand == '1':
                 return ['OR', ('triage_entry.status', '=', 'pending'),
                         ('appointment.state', '=', 'confirmed')]
@@ -171,3 +194,10 @@ class QueueEntry(ModelSQL, ModelView):
             return self.appointment.comments
         else:
             return self.triage_entry.notes
+
+    # ToDo: Button Functions for :
+    #
+    # Call: sets busy=True for the selected queue item and opens the
+    #        Triage, Appointment or Encounter object associated
+    #
+    # Release: Sets busy=False for the selected queue item.
