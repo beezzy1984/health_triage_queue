@@ -4,7 +4,7 @@
         <!-- Queue Icon -->
         <record model="ir.ui.icon" id="gnuhealth_icon_queue_entry">
             <field name="name">health-queue-entry</field>
-            <field name="path">icons/appointment_queue.svg</field>
+            <field name="path">icons/appointment-queue.svg</field>
         </record>
         <!-- Queue Call Button Icon -->
         <record model="ir.ui.icon" id="gnuhealth_icon_queue_call">
