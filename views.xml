@@ -129,5 +129,17 @@
             action="health_actwin_triage_entry" icon="health-triage"
             parent="health.gnuhealth_appointment_menu" sequence="20" />
 
+        <!-- The queue entry will open appointments, encounters and triage entries.
+        Each one of these needs an act_window that opens by default to the 
+        form view. We will use the default form views but create custom act_windows.
+        It also means we need to create custom act_window.views that use these windows. -->
+
+        <!-- Triage -->
+
+        <!-- Appointment -->
+
+        <!-- Encounter -->
+
+
     </data>
 </tryton>
