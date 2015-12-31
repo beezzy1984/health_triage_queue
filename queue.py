@@ -57,6 +57,12 @@ class QueueEntry(ModelSQL, ModelView):
     def __setup__(cls):
         super(QueueEntry, cls).__setup__()
         cls.write_date.string = 'Last Modified'
+        cls._order = [('write_date', 'ASC'), ('create_date', 'ASC')]
+        cls._buttons.update(
+            btn_inspect={},
+            btn_call={'readonly': Eval('busy', False)},
+            btn_dismiss={'readonly': Not(Eval('busy', False))}
+        )
 
     @classmethod
     def get_patient_name(cls, instances, name):
@@ -78,7 +84,7 @@ class QueueEntry(ModelSQL, ModelView):
             parties = Party.search_read(
                 [('internal_user', 'in', [x[1] for x in touchers])],
                 fields_names=['name', 'id', 'internal_user'])
-            parties = dict([(x.internal_user, x.name) for x in parties])
+            parties = dict([(x['internal_user'], x['name']) for x in parties])
             touch_parties = [(x, parties.get(y.id, y.name))
                              for x, y in touchers]
             return dict(touch_parties)
@@ -186,9 +192,10 @@ class QueueEntry(ModelSQL, ModelView):
 
     @classmethod
     def get_sex(cls, instances, name):
-        out = dict([(x.id, x.appointment.patient.age)
-                    for x in instances if x.appointment])
-        out.update([(x.id, x.triage_entry.age)
+        out = dict([(x.id, x.appointment.patient.name.sex)
+                    for x in instances if x.appointment and
+                    x.appointment.patient])
+        out.update([(x.id, x.triage_entry.sex)
                     for x in instances if not x.appointment])
         return out
 
@@ -211,14 +218,42 @@ class QueueEntry(ModelSQL, ModelView):
     #     pass
 
     def get_notes_info(self, name):
+        details = []
         if self.appointment:
-            return self.appointment.comments
+            a = self.appointment
+            details.extend([' '.join(x) for x in [
+                            ('Appointment: ', a.appointment_date.strftime('%c')),
+                            ('    Specialty: ', a.speciality.name),
+                            ('    Status: ', a.state)]])
         else:
-            return self.triage_entry.notes
+            details.extend(filter(None, [self.triage_entry.complaint,
+                                         self.triage_entry.notes]))
+        return '\n'.join(details)
 
-    # ToDo: Button Functions for :
-    #
+    # Button Functions for :
+    # Inspect: Does the same as call except doesn't create new records nor
+    #          does it update the busy flag on the queue entry
     # Call: sets busy=True for the selected queue item and opens the
     #        Triage, Appointment or Encounter object associated
-    #
-    # Release: Sets busy=False for the selected queue item.
+    #        If the required related Appointment or Encounter no exist
+    #        create it.
+    # Dismiss: Sets busy=False for the selected queue item.
+
+    @classmethod
+    @ModelView.button_action('health_triage_queue.act_queue_inspect_starter')
+    def btn_inspect(cls, queue_entries):
+        pass
+
+    @classmethod
+    @ModelView.button_action('health_triage_queue.act_queue_call_starter')
+    def btn_call(cls, queue_entries):
+        # cls.write(queue_entries, {'busy': True})
+        # we want to set this to True, but do we want to do it here
+        # or should we do it after the thing launched has been saved or
+        # somehow touched?
+        pass
+
+    @classmethod
+    @ModelView.button_action('health_triage_queue.act_queue_dismiss_starter')
+    def btn_dismiss(cls, queue_entries):
+        pass
