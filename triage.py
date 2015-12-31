@@ -4,7 +4,7 @@ from trytond.model import ModelView, ModelSQL, fields
 from trytond.pyson import Eval, Not, Equal, Or, Bool, In, Len
 
 SEX_OPTIONS = [('m', 'Male'), ('f', 'Female'), ('u', 'Unknown')]
-ID_TYPES = [
+ID_TYPES = [(None, ''),
     ('trn', 'TRN'),
     ('medical_record', 'Medical Record'),
     ('upi', 'ePAS UPI'),
@@ -48,6 +48,7 @@ class TriageEntry(ModelSQL, ModelView):
     injury = fields.Boolean('Injury')
     review = fields.Boolean('Review')
     status = fields.Selection(TRIAGE_STATUS, 'Status', sort=False)
+    complaint = fields.Char('Primary Complaint')
     notes = fields.Text('Notes')
     upi = fields.Function(fields.Char('UPI'), 'get_patient_party_field')
     name = fields.Function(fields.Char('Name'), 'get_name',

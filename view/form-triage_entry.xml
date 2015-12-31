@@ -31,6 +31,11 @@
         <field name="priority" />
     </group>
     <group string="Notes" id="grp_triage_notes" colspan="12">
+        <group id="grp_primary_complaint" col="4" colspan="12">
+            <label name="complaint" colspan="1" />
+            <field name="complaint" colspan="3" />
+        </group>
+        <newline />
         <field name="notes" colspan="12" />
     </group>
 </form>
