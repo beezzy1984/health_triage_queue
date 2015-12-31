@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tryton>
+    <data>
+        <!-- Call Button Wizard. This wizard is linked to the call button
+        on queue entries -->
+        <record model="ir.action.wizard" id="act_queue_call_starter">
+            <field name="name">Call</field>
+            <field name="wiz_name">gnuhealth.queue_entry.call_wizard</field>
+        </record>
+        <!-- Form action allows the call button to be called from the action 
+        button on the tree view or right-click -->
+        <!-- <record model="ir.action.keyword" id="act_queue_call">
+            <field name="keyword">form_action</field>
+            <field name="model">gnuhealth.patient.queue_entry,-1</field>
+            <field name="action" ref="act_queue_call_starter"/>
+        </record> -->
+
+        <!-- Dismiss Button Wizard. linked to the Dismiss button -->
+        <record model="ir.action.wizard" id="act_queue_dismiss_starter">
+            <field name="name">Dismiss</field>
+            <field name="wiz_name">gnuhealth.queue_entry.dismiss_wizard</field>
+        </record>
+
+
+        <record model="ir.action.wizard" id="act_queue_inspect_starter">
+            <field name="name">Inspect</field>
+            <field name="wiz_name">gnuhealth.queue_entry.inspect_wizard</field>
+        </record>
+        <!-- Form action allows the inspect button to be called from the action 
+        button on the tree view or right-click -->
+        <record model="ir.action.keyword" id="act_queue_dismiss">
+            <field name="keyword">form_action</field>
+            <field name="model">gnuhealth.patient.queue_entry,-1</field>
+            <field name="action" ref="act_queue_inspect_starter"/>
+        </record>
+
+
+    </data>
+</tryton>
