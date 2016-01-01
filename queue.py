@@ -1,7 +1,7 @@
 
 from trytond.pool import Pool
 from trytond.model import ModelView, ModelSQL, fields
-from trytond.pyson import Eval, Not, Equal, Or, Greater, In, Len
+from trytond.pyson import Eval, Not, Equal, Or, Greater, In, Len, Bool
 from .triage import TriageEntry, SEX_OPTIONS
 
 QUEUE_ENTRY_STATES = [
@@ -23,12 +23,12 @@ class QueueEntry(ModelSQL, ModelView):
     appointment = fields.Many2One('gnuhealth.appointment', 'Appointment')
     encounter = fields.Many2One('gnuhealth.encounter', 'Encounter')
     busy = fields.Boolean('Busy', states={'readonly': True})
-    encounter_components = fields.Function(fields.Char('Encounter Components'),
-                                           'get_encounter_component_set')
-                                           # searcher='search_component_set')
+    line_notes = fields.Text('Line notes',
+                             help="Quick note about this line/patient")
+    encounter_components = fields.Function(
+        fields.Char('Encounter Components'), 'get_encounter_component_set')
     encounter_component_count = fields.Function(
         fields.Integer('# Components'), 'get_encounter_component_set')
-        # searcher='search_component_count')
     entry_state = fields.Function(fields.Selection(QUEUE_ENTRY_STATES, 'State'),
                                   'get_qentry_state',
                                   searcher='search_qentry_state')
@@ -38,7 +38,7 @@ class QueueEntry(ModelSQL, ModelView):
                                  searcher='search_upi_mrn_id')
     sex = fields.Function(fields.Selection(SEX_OPTIONS, 'Sex'),
                           'get_sex', searcher='search_sex')
-    age = fields.Function(fields.Char('Age'), 'get_age')  #, searcher='search_age')
+    age = fields.Function(fields.Char('Age'), 'get_age')
     notes = fields.Function(fields.Text('Notes/Info'), 'get_notes_info')
     last_touch = fields.Function(fields.DateTime('Last Modified'),
                                  'get_last_touch')
@@ -60,7 +60,8 @@ class QueueEntry(ModelSQL, ModelView):
         cls._order = [('write_date', 'ASC'), ('create_date', 'ASC')]
         cls._buttons.update(
             btn_inspect={},
-            btn_call={'readonly': Eval('busy', False)},
+            btn_call={'readonly': Or(Eval('busy', False),
+                                     Equal('99', Eval('entry_state', '0')))},
             btn_dismiss={'readonly': Not(Eval('busy', False))}
         )
 
@@ -219,12 +220,16 @@ class QueueEntry(ModelSQL, ModelView):
 
     def get_notes_info(self, name):
         details = []
-        if self.appointment:
+        if self.encounter:
+            details = ['Encounter started: %s' % (
+                       self.encounter.start_time.strftime('%c'),),
+                       self.encounter.short_summary]
+        elif self.appointment:
             a = self.appointment
-            details.extend([' '.join(x) for x in [
-                            ('Appointment: ', a.appointment_date.strftime('%c')),
-                            ('    Specialty: ', a.speciality.name),
-                            ('    Status: ', a.state)]])
+            details = [' '.join(x) for x in [
+                       ('Appointment: ', a.appointment_date.strftime('%c')),
+                       ('    Specialty: ', a.speciality.name),
+                       ('    Status: ', a.state)]]
         else:
             details.extend(filter(None, [self.triage_entry.complaint,
                                          self.triage_entry.notes]))

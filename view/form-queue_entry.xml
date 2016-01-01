@@ -7,10 +7,11 @@
         <field name="sex" width="60" />
         <field name="age" width="40" />
     </group>
-    <group id="queue_item_notes" string="Complaint/Notes" col="6" colspan="6">
-        <field name="notes" colspan="6" height="160" />
+    <group id="queue_item_notes" string="Details/Notes" col="6" colspan="6">
+        <field name="notes" colspan="6" height="100" />
+        <field name="line_notes" colspan="6" height="40" />
         <newline />
-        <group id="queue_item_encounter_details" string="Encounter Details">
+        <group id="queue_item_encounter_details" string="Encounter Details" states="{'invisible': Not(Bool(Eval('encounter')))}">
             <label name="encounter_components" />
             <field name="encounter_components" />
             <label name="encounter_component_count" />
@@ -20,6 +21,13 @@
     <newline />
     <group id="queue_notes_buttons" col="6" colspan="6">
         <group id="queue_item_detail" col="2" colspan="5">
+            <label name="last_toucher" />
+            <field name="last_toucher" />
+<!--             <label name="last_touch" />
+            <group id="last-mod" col="3" colspan="1">
+                <field name="last_touch" />
+                <label id="last_touch_by_by" string="By" />
+            </group> -->
             <label name="triage_entry" />
             <field name="triage_entry" />
             <label name="appointment" />
@@ -28,7 +36,7 @@
             <field name="encounter" />
         </group>
         <group id="queue_item_buttons" col="1" colspan="1">
-            <group id="busy_box" col="2" colspan="1">
+            <group id="busy_box" col="4" colspan="1">
                 <label name="entry_state" />
                 <field name="entry_state" />
                 <label name="busy" />
