@@ -13,6 +13,7 @@ QUEUE_ENTRY_STATES = [
     ('99', 'Done'),
 ]
 
+APPT_DONE_STATES = ['done', 'user_cancelled', 'center_cancelled', 'no_show']
 
 class QueueEntry(ModelSQL, ModelView):
     'Queue Entry'
@@ -22,7 +23,7 @@ class QueueEntry(ModelSQL, ModelView):
     triage_entry = fields.Many2One('gnuhealth.triage.entry', 'Triage Entry')
     appointment = fields.Many2One('gnuhealth.appointment', 'Appointment')
     encounter = fields.Many2One('gnuhealth.encounter', 'Encounter')
-    busy = fields.Boolean('Busy', states={'readonly': True})
+    busy = fields.Boolean('Busy', states={'readonly': True}, select=True)
     line_notes = fields.Text('Line notes',
                              help="Quick note about this line/patient")
     encounter_components = fields.Function(
@@ -187,9 +188,17 @@ class QueueEntry(ModelSQL, ModelView):
             elif operand == '4':
                 return [('appointment.state', '=', 'processing')]
             else:
-                return [('appointment.state', 'in', ['done', 'user_cancelled',
-                                                     'center_cancelled',
-                                                     'no_show'])]
+                return [('appointment.state', 'in', APPT_DONE_STATES)]
+        elif operator == '!=':
+            if operand == '99':
+                # i.e. those that are not done
+                return ['OR', ('appointment', '=', None),
+                        ('appointment.state', 'not in', APPT_DONE_STATES)]
+            if operand == '1':
+                return ['OR',
+                        ('triage_entry.status', 'in', ['tobeseen', 'resched',
+                                                       'refer']),
+                        ('appointment.state', 'in', ['arrived','processing'])]
 
     @classmethod
     def get_sex(cls, instances, name):
