@@ -10,13 +10,6 @@
     <group id="queue_item_notes" string="Details/Notes" col="6" colspan="6">
         <field name="notes" colspan="6" height="100" />
         <field name="line_notes" colspan="6" height="40" />
-        <newline />
-        <group id="queue_item_encounter_details" string="Encounter Details" states="{'invisible': Not(Bool(Eval('encounter')))}">
-            <label name="encounter_components" />
-            <field name="encounter_components" />
-            <label name="encounter_component_count" />
-            <field name="encounter_component_count" />
-        </group>
     </group>
     <newline />
     <group id="queue_notes_buttons" col="6" colspan="6">
@@ -49,6 +42,14 @@
             icon="health-queue-dismiss" />
             <button name="btn_inspect" help="Look at the details without calling the patient" icon="health-queue-peek" string="Inspect" />
         </group>
+    </group>
+    <newline />
+    <separator id="post_button_sep" /><newline />
+    <group id="queue_item_encounter_details" string="Encounter Details" states="{'invisible': Not(Bool(Eval('encounter')))}">
+        <label name="encounter_components" />
+        <field name="encounter_components" />
+        <label name="encounter_component_count" />
+        <field name="encounter_component_count" />
     </group>
 
 </form>
