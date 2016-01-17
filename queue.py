@@ -1,4 +1,5 @@
 
+from datetime import datetime
 from trytond.pool import Pool
 from trytond.model import ModelView, ModelSQL, fields
 from trytond.pyson import Eval, Not, Equal, Or, Greater, In, Len, Bool
@@ -47,6 +48,8 @@ class QueueEntry(ModelSQL, ModelView):
     queue_notes = fields.One2Many('gnuhealth.patient.queue_entry_note',
                                   'queue_entry', 'Queue Notes',
                                   states={'invisible': True})
+    last_call = fields.DateTime('Last called', select=True)
+    priority = fields.Integer('Priority', readonly=True)
     last_touch = fields.Function(fields.DateTime('Last Modified', format='%H:%M'),
                                  'get_last_touch')
     last_toucher = fields.Function(fields.Char('Last Modified By'),
@@ -60,11 +63,16 @@ class QueueEntry(ModelSQL, ModelView):
     def default_active():
         return True
 
+    @staticmethod
+    def default_priority():
+        return 0
+
     @classmethod
     def __setup__(cls):
         super(QueueEntry, cls).__setup__()
         cls.write_date.string = 'Last Modified'
-        cls._order = [('write_date', 'ASC'), ('create_date', 'ASC')]
+        cls._order = [('priority', 'DESC'), ('last_call', 'ASC'),
+                      ('create_date', 'ASC')]
         cls._buttons.update(
             btn_inspect={},
             btn_call={'readonly': Or(Eval('busy', False),
@@ -79,11 +87,24 @@ class QueueEntry(ModelSQL, ModelView):
             # if is_write:
             #     note = ('create', [note])
             vdict.setdefault('queue_notes', []).append(note)
+        if vdict.get('busy', False):
+            vdict['last_call'] = datetime.now()
         return vdict
+
+    #TODo: Handle the situation that updates the priority field
+    # Priority is calculated as follows:
+    # prio = 0
+    # if triage:
+    #   prio = int(triage.priority)
+    # if appointment:
+    #   aprio = {'a':0, 'b':2, 'c':4}[appointment.urgency]
+    #     if aprio > prio
+    #         prio = aprio
+
 
     @classmethod
     def write(cls, instances, values, *args):
-        # overload to handle the following situation
+        # overload to handle the following situation:
         # if something is written in line-notes, create a QueueEntryNote
         # object with that as the note. To do that we will 
         values = cls._swapout(values)
