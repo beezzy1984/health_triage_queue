@@ -20,9 +20,12 @@ class QueueEntry(ModelSQL, ModelView):
     __name__ = 'gnuhealth.patient.queue_entry'
 
     active = fields.Boolean('Active')
-    triage_entry = fields.Many2One('gnuhealth.triage.entry', 'Triage Entry')
-    appointment = fields.Many2One('gnuhealth.appointment', 'Appointment')
-    encounter = fields.Many2One('gnuhealth.encounter', 'Encounter')
+    triage_entry = fields.Many2One('gnuhealth.triage.entry', 'Triage Entry',
+                                   states={'readonly': Eval('id', 0) > 0})
+    appointment = fields.Many2One('gnuhealth.appointment', 'Appointment',
+                                  states={'readonly': Eval('id', 0) > 0})
+    encounter = fields.Many2One('gnuhealth.encounter', 'Encounter',
+                                states={'invisible': True})
     busy = fields.Boolean('Busy', states={'readonly': True}, select=True)
     line_notes = fields.Text('Line notes',
                              help="Quick note about this line/patient")
@@ -41,7 +44,10 @@ class QueueEntry(ModelSQL, ModelView):
                           'get_sex', searcher='search_sex')
     age = fields.Function(fields.Char('Age'), 'get_age')
     notes = fields.Function(fields.Text('Notes/Info'), 'get_notes_info')
-    last_touch = fields.Function(fields.DateTime('Last Modified'),
+    queue_notes = fields.One2Many('gnuhealth.patient.queue_entry_note',
+                                  'queue_entry', 'Queue Notes',
+                                  states={'invisible': True})
+    last_touch = fields.Function(fields.DateTime('Last Modified', format='%H:%M'),
                                  'get_last_touch')
     last_toucher = fields.Function(fields.Char('Last Modified By'),
                                    'get_last_touch')
@@ -67,6 +73,33 @@ class QueueEntry(ModelSQL, ModelView):
         )
 
     @classmethod
+    def _swapout(cls, vdict, is_write=True):
+        if 'line_notes' in vdict:
+            note = ('create', [{'note': vdict.pop('line_notes')}])
+            # if is_write:
+            #     note = ('create', [note])
+            vdict.setdefault('queue_notes', []).append(note)
+        return vdict
+
+    @classmethod
+    def write(cls, instances, values, *args):
+        # overload to handle the following situation
+        # if something is written in line-notes, create a QueueEntryNote
+        # object with that as the note. To do that we will 
+        values = cls._swapout(values)
+        if args:
+            newargs = [(x, cls._swapout(y)) for x, y in args]
+        else:
+            newargs = []
+        return super(QueueEntry, cls).write(instances, values, *newargs)
+
+    @classmethod
+    def create(cls, vlist):
+        # overload to create a QueueEntryNote if a line_note is included
+        newvlist = [cls._swapout(v, False) for v in vlist]
+        return super(QueueEntry, cls).create(newvlist)
+
+    @classmethod
     def get_patient_name(cls, instances, name):
         out = dict([(x.id, x.appointment.patient.name.name) for x in instances
                     if x.appointment])
@@ -80,16 +113,8 @@ class QueueEntry(ModelSQL, ModelView):
             return dict([(x.id, x.write_date or x.create_date)
                         for x in instances])
         elif name == 'last_toucher':
-            pooler = Pool()
-            touchers = [(x.id, x.write_uid or x.create_uid) for x in instances]
-            Party = pooler.get('party.party')
-            parties = Party.search_read(
-                [('internal_user', 'in', [x[1] for x in touchers])],
-                fields_names=['name', 'id', 'internal_user'])
-            parties = dict([(x['internal_user'], x['name']) for x in parties])
-            touch_parties = [(x, parties.get(y.id, y.name))
-                             for x, y in touchers]
-            return dict(touch_parties)
+            return dict([(x.id, x.write_uid and x.write_uid.name or x.create_uid.name)
+                        for x in instances])
 
     @classmethod
     def search_patient_name(cls, name, clause):
@@ -198,7 +223,7 @@ class QueueEntry(ModelSQL, ModelView):
                 return ['OR',
                         ('triage_entry.status', 'in', ['tobeseen', 'resched',
                                                        'refer']),
-                        ('appointment.state', 'in', ['arrived','processing'])]
+                        ('appointment.state', 'in', ['arrived', 'processing'])]
 
     @classmethod
     def get_sex(cls, instances, name):
@@ -229,20 +254,27 @@ class QueueEntry(ModelSQL, ModelView):
 
     def get_notes_info(self, name):
         details = []
+        qnotes = []
+        if self.queue_notes:
+            qnotes = map(lambda x: u' - '.join([x.note, x.byline]),
+                         self.queue_notes)
+            details.extend([qnotes.pop(0), '-' * 20])
         if self.encounter:
             details = ['Encounter started: %s' % (
                        self.encounter.start_time.strftime('%c'),),
                        self.encounter.short_summary]
         elif self.appointment:
             a = self.appointment
-            details = [' '.join(x) for x in [
-                       ('Appointment: ', a.appointment_date.strftime('%c')),
-                       ('    Specialty: ', a.speciality.name),
-                       ('    Status: ', a.state)]]
+            details = [u' '.join(x) for x in [
+                       (u'Appointment: ', a.appointment_date.strftime('%c')),
+                       (u'    Specialty: ', a.speciality.name),
+                       (u'    Status: ', a.state)]]
         else:
             details.extend(filter(None, [self.triage_entry.complaint,
                                          self.triage_entry.notes]))
-        return '\n'.join(details)
+        if qnotes:
+            details.extend(['-' * 20] + qnotes)
+        return u'\n'.join(details)
 
     # Button Functions for :
     # Inspect: Does the same as call except doesn't create new records nor
@@ -271,3 +303,36 @@ class QueueEntry(ModelSQL, ModelView):
     @ModelView.button_action('health_triage_queue.act_queue_dismiss_starter')
     def btn_dismiss(cls, queue_entries):
         pass
+
+
+class QueueEntryNote(ModelView, ModelSQL):
+    'Line Note'
+    __name__ = 'gnuhealth.patient.queue_entry_note'
+    queue_entry = fields.Many2One('gnuhealth.patient.queue_entry',
+                                  'Queue Entry', required=True)
+    note = fields.Text('Note', required=True)
+    created = fields.Function(fields.DateTime('Created at'), 'get_writeinfo')
+    creator = fields.Function(fields.Char('Creator'), 'get_writeinfo')
+    byline = fields.Function(fields.Char('By Line'), 'get_writeinfo')
+
+    @classmethod
+    def __setup__(cls):
+        super(QueueEntryNote, cls).__setup__()
+        cls._order = [('write_date', 'DESC'), ('create_date', 'DESC')]
+
+    @classmethod
+    def get_writeinfo(cls, instances, name):
+        if name == 'created':
+            conv = lambda x: (x.id,
+                              x.write_date and x.write_date or x.create_date)
+        elif name == 'creator':
+            conv = lambda x: (x.id, x.write_uid.name if x.write_uid
+                              else x.create_uid.name)
+        elif name == 'byline':
+            conv = lambda x: (x.id, u'%s at %s' % (
+                              x.create_uid.name,
+                              x.create_date.strftime('%H:%M on %Y-%m-%d')
+                              ))
+        else:
+            conv = lambda x: (x.id, None)
+        return dict(map(conv, instances))

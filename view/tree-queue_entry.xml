@@ -4,8 +4,8 @@
     <field name="upi_mrn_id" expand="1" />
     <field name="age" />
     <field name="sex" />
-    <!-- <field name="specialty" />
-    <field name="entry_state" /> -->
+    <!-- <field name="specialty" /> -->
+    <field name="entry_state" />
     <field name="last_touch" />
     <field name="last_toucher" />
     <field name="encounter_components" />
