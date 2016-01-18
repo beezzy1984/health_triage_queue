@@ -29,7 +29,7 @@ TRIAGE_STATUS = [
 ]
 
 REQD_IF_NOPATIENT = {'required': Not(Bool(Eval('patient'))),
-                     'readonly': Bool(Eval('patient'))}
+                     'invisible': Bool(Eval('patient'))}
 
 
 class TriageEntry(ModelSQL, ModelView):
@@ -40,8 +40,10 @@ class TriageEntry(ModelSQL, ModelView):
     sex = fields.Selection(SEX_OPTIONS, 'Sex', states=REQD_IF_NOPATIENT)
     age = fields.Char('Age', states=REQD_IF_NOPATIENT)
     id_type = fields.Selection(ID_TYPES, 'ID Type', states={
-        'required': Bool(Eval('id_number'))}, sort=False)
-    id_number = fields.Char('ID Number')
+        'required': Bool(Eval('id_number')), 'readonly': Bool(Eval('patient'))},
+        sort=False)
+    id_number = fields.Char('ID Number',
+                            states={'readonly': Bool(Eval('patient'))})
     id_display = fields.Function(fields.Char('ID Display'), 'get_id_display')
     patient = fields.Many2One('gnuhealth.patient', 'Patient')
     priority = fields.Selection(TRIAGE_PRIO, 'Priority')
@@ -56,6 +58,46 @@ class TriageEntry(ModelSQL, ModelView):
     patient_search = fields.Function(fields.One2Many(
                                      'gnuhealth.patient', None, 'Patients'),
                                      'patient_search_result')
+    queue_entry = fields.One2Many('gnuhealth.patient.queue_entry',
+                                  'triage_entry', 'Queue Entry', size=1)
+
+
+    @classmethod
+    def create(cls, vlist):
+        # add me to the queue when created
+        for vdict in vlist:
+            if not vdict.get('queue_entry'):
+                vdict['queue_entry'] = [('create',
+                                         [{'busy': False,
+                                           'priority': int(vdict.get('priority', '0'))}])]
+        return super(TriageEntry, cls).create(vlist)
+
+    @classmethod
+    def make_priority_updates(cls, triage_entries, values_to_write):
+        if 'priority' in values_to_write and 'queue_entry' not in values_to_write:
+            prio = int(values_to_write['priority'])
+            queue_model = Pool().get('gnuhealth.patient.queue_entry')
+            qentries = queue_model.search(
+                ['AND', ('triage_entry', 'in', triage_entries),
+                 ['OR', ('appointment', '=', None), ('priority', '<', prio)]])
+
+            values_to_write['queue_entry'] = [('write', [qentries,
+                                               {'priority': prio}])]
+
+        return triage_entries, values_to_write
+
+    @classmethod
+    def write(cls, records, values, *args):
+        # update queue priority when mine updated
+        # but only if it's lower or there's no appointment
+        records, values = cls.make_priority_updates(records, values)
+        newargs = []
+        if args:
+            arglist = iter(args)
+            for r, v in zip(arglist, arglist):
+                r, v = cls.make_priority_updates(r, v)
+                newargs.extend([r, v])
+        return super(TriageEntry, cls).write(records, values, *newargs)
 
     @staticmethod
     def default_priority():
