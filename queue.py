@@ -22,9 +22,11 @@ class QueueEntry(ModelSQL, ModelView):
 
     active = fields.Boolean('Active')
     triage_entry = fields.Many2One('gnuhealth.triage.entry', 'Triage Entry',
-                                   states={'readonly': Eval('id', 0) > 0})
+                                   states={'readonly': Eval('id', 0) > 0},
+                                   select=True)
     appointment = fields.Many2One('gnuhealth.appointment', 'Appointment',
-                                  states={'readonly': Eval('id', 0) > 0})
+                                  states={'readonly': Eval('id', 0) > 0},
+                                  select=True)
     encounter = fields.Many2One('gnuhealth.encounter', 'Encounter',
                                 states={'invisible': True})
     busy = fields.Boolean('Busy', states={'readonly': True}, select=True)
@@ -80,17 +82,6 @@ class QueueEntry(ModelSQL, ModelView):
             btn_dismiss={'readonly': Not(Eval('busy', False))}
         )
 
-    @classmethod
-    def _swapout(cls, vdict, is_write=True):
-        if 'line_notes' in vdict:
-            note = ('create', [{'note': vdict.pop('line_notes')}])
-            # if is_write:
-            #     note = ('create', [note])
-            vdict.setdefault('queue_notes', []).append(note)
-        if vdict.get('busy', False):
-            vdict['last_call'] = datetime.now()
-        return vdict
-
     #TODo: Handle the situation that updates the priority field
     # Priority is calculated as follows:
     # prio = 0
@@ -100,6 +91,17 @@ class QueueEntry(ModelSQL, ModelView):
     #   aprio = {'a':0, 'b':2, 'c':4}[appointment.urgency]
     #     if aprio > prio
     #         prio = aprio
+
+    @classmethod
+    def _swapout(cls, vdict, is_write=True):
+        if vdict.get('line_notes', False):
+            note = ('create', [{'note': vdict.pop('line_notes')}])
+            # if is_write:
+            #     note = ('create', [note])
+            vdict.setdefault('queue_notes', []).append(note)
+        if vdict.get('busy', False):
+            vdict['last_call'] = datetime.now()
+        return vdict
 
 
     @classmethod
