@@ -34,6 +34,19 @@
             <field name="action" ref="act_queue_inspect_starter"/>
         </record>
 
+        <!-- Trigger To Create Queue Entry When Appointment => Arrived -->
+        <record model="ir.trigger" id="tr_queue_appt_arrive">
+            <field name="name">Enqueue When Appointment Arrive</field>
+            <field name="model" search="[('model','=', 'gnuhealth.appointment')]" />
+            <field name="on_time" eval="False" />
+            <field name="on_create" eval="False" />
+            <field name="on_delete" eval="False" />
+            <field name="on_write" eval="True" />
+            <field name="condition">self.state=='arrived'</field>
+            <field name="limit_number" eval="1" />
+            <field name="action_model" search="[('model', '=', 'gnuhealth.patient.queue_entry')]" />
+            <field name="action_function">appointment_arrive_trigger</field>
+        </record>
 
     </data>
 </tryton>

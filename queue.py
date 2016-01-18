@@ -3,7 +3,8 @@ from datetime import datetime
 from trytond.pool import Pool
 from trytond.model import ModelView, ModelSQL, fields
 from trytond.pyson import Eval, Not, Equal, Or, Greater, In, Len, Bool
-from .triage import TriageEntry, SEX_OPTIONS
+from .triage import TriageEntry
+from .common import APM, SEX_OPTIONS
 
 QUEUE_ENTRY_STATES = [
     ('0', ''),
@@ -50,11 +51,11 @@ class QueueEntry(ModelSQL, ModelView):
     queue_notes = fields.One2Many('gnuhealth.patient.queue_entry_note',
                                   'queue_entry', 'Queue Notes',
                                   states={'invisible': True})
-    last_call = fields.DateTime('Last called', select=True)
+    last_call = fields.DateTime('Last Seen', select=True)
     priority = fields.Integer('Priority', readonly=True)
-    last_touch = fields.Function(fields.DateTime('Last Modified', format='%H:%M'),
+    last_touch = fields.Function(fields.DateTime('Last Seen', format='%H:%M'),
                                  'get_last_touch')
-    last_toucher = fields.Function(fields.Char('Last Modified By'),
+    last_toucher = fields.Function(fields.Char('Last Seen By'),
                                    'get_last_touch')
 
     @staticmethod
@@ -326,6 +327,19 @@ class QueueEntry(ModelSQL, ModelView):
     @ModelView.button_action('health_triage_queue.act_queue_dismiss_starter')
     def btn_dismiss(cls, queue_entries):
         pass
+
+    @classmethod
+    def appointment_arrive_trigger(cls, appointments, trigger):
+        # create a queue entry item for each appointment with state=arrived
+        # 1st, find the appointments already queued
+        already = cls.search_read(
+            [('appointment', 'in', map(int, appointments))],
+            fields_names=['appointment', 'id'])
+        alreadict = dict([(x['appointment'], x['id']) for x in already])
+        vals = [{'appointment': a.id, 'priority': APM.get(a.urgency, 0),
+                 'busy': False}
+                for a in appointments if a.id not in alreadict]
+        cls.create(vals)
 
 
 class QueueEntryNote(ModelView, ModelSQL):

@@ -2,21 +2,8 @@
 from trytond.pool import Pool
 from trytond.model import ModelView, ModelSQL, fields
 from trytond.pyson import Eval, Not, Equal, Or, Bool, In, Len
+from .common import ID_TYPES, SEX_OPTIONS
 
-SEX_OPTIONS = [('m', 'Male'), ('f', 'Female'), ('u', 'Unknown')]
-ID_TYPES = [(None, ''),
-    ('trn', 'TRN'),
-    ('medical_record', 'Medical Record'),
-    ('upi', 'ePAS UPI'),
-    ('pathID ', 'PATH ID'),
-    ('gojhcard', 'GOJ Health Card'),
-    ('votersid', 'GOJ Voter\'s ID'),
-    ('birthreg', 'Birth Registration ID'),
-    ('ninnum', 'NIN #'),
-    ('passport', 'Passport'),
-    ('jm_license', 'Drivers License (JM)'),
-    ('nonjm_license', 'Drivers License (non-JM)'),
-    ('other', 'Other')]
 
 TRIAGE_MAX_PRIO = 4
 TRIAGE_PRIO = [(str(x), str(x)) for x in range(TRIAGE_MAX_PRIO+1)]

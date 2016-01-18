@@ -2,9 +2,7 @@
 from trytond.pool import Pool
 from trytond.model import ModelSQL, ModelView, fields
 from trytond.pyson import Eval
-
-APM = {'a': 0, 'b': 2, 'c': 4}  # Appointment Priority Map
-
+from .common import APM
 
 class Appointment(ModelSQL, ModelView):
     '''Appointment
