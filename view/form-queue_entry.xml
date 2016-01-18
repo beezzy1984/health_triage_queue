@@ -29,19 +29,21 @@
             <label name="encounter" />
             <field name="encounter" />
         </group>
-        <group id="queue_item_buttons" col="1" colspan="1">
-            <group id="busy_box" col="4" colspan="1">
-                <label name="entry_state" />
-                <field name="entry_state" />
-                <label name="busy" />
-                <field name="busy" />
-            </group>
+        <group id="queue_item_buttons" col="2" colspan="1">
+            <label name="priority" />
+            <field name="priority" />
+            <label name="busy" />
+            <field name="busy" />
+            <label name="entry_state" />
+            <field name="entry_state" />
 
-            <button name="btn_call" help="Call in this patient" string="C_all"
-            icon="health-queue-call" />
-            <button name="btn_dismiss" help="Dismiss patient" string="Dismi_ss"
-            icon="health-queue-dismiss" />
-            <button name="btn_inspect" help="Look at the details without calling the patient" icon="health-queue-peek" string="Inspect" />
+            <group id="button_box" col="3" colspan="2">
+                <button name="btn_call" help="Call in this patient" string="C_all"
+                icon="health-queue-call" />
+                <button name="btn_dismiss" help="Dismiss patient" string="Dismi_ss"
+                icon="health-queue-dismiss" />
+                <button name="btn_inspect" help="Look at the details without calling the patient" icon="health-queue-peek" string="Inspect" />
+            </group>
         </group>
     </group>
     <newline />

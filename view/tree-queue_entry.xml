@@ -8,6 +8,7 @@
     <field name="entry_state" />
     <field name="last_touch" />
     <field name="last_toucher" />
+    <field name="priority" />
     <field name="encounter_components" />
     <field name="encounter_component_count" />
     <!-- <button string="Call" name="btn_call" /> -->
