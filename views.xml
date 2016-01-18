@@ -66,13 +66,13 @@
             <field name="act_window" ref="health_actwin_queue_entry" />
         </record>
         <!-- Act_window.domain records defined to create tabs in the tree -->
-        <record model="ir.action.act_window.domain" id="health_actwindom-queue-state1">
+        <!-- <record model="ir.action.act_window.domain" id="health_actwindom-queue-state1">
             <field name="name">Triage</field>
             <field name="domain">[('busy', '=', False), ('entry_state', '=', '1')]</field>
             <field name="sequence" eval="21" />
             <field name="act_window" ref="health_actwin_queue_entry" />
         </record>
-        <!-- <record model="ir.action.act_window.domain" id="health_actwindom-queue-state2">
+        <record model="ir.action.act_window.domain" id="health_actwindom-queue-state2">
             <field name="name">Registration</field>
             <field name="domain">[('busy', '=', False), ('entry_state', '=', '2'), ]</field>
             <field name="sequence" eval="20" />
@@ -86,7 +86,7 @@
         </record> -->
         <record model="ir.action.act_window.domain" id="health_actwindom-queue-state4">
             <field name="name">Waiting</field>
-            <field name="domain">[('busy', '=', False), ('entry_state', '!=', '99'), ('entry_state', '!=', '1')]</field>
+            <field name="domain">[('busy', '=', False), ('entry_state', '!=', '99')]</field>
             <field name="sequence" eval="20" />
             <field name="act_window" ref="health_actwin_queue_entry" />
         </record>

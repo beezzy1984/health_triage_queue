@@ -36,7 +36,7 @@ class QueueEntry(ModelSQL, ModelView):
     encounter_components = fields.Function(
         fields.Char('Encounter Components'), 'get_encounter_component_set')
     encounter_component_count = fields.Function(
-        fields.Integer('# Components'), 'get_encounter_component_set')
+        fields.Integer('Component Count'), 'get_encounter_component_set')
     entry_state = fields.Function(fields.Selection(QUEUE_ENTRY_STATES, 'State'),
                                   'get_qentry_state',
                                   searcher='search_qentry_state')
@@ -55,7 +55,7 @@ class QueueEntry(ModelSQL, ModelView):
     priority = fields.Integer('Priority', readonly=True)
     last_touch = fields.Function(fields.DateTime('Last Seen', format='%H:%M'),
                                  'get_last_touch')
-    last_toucher = fields.Function(fields.Char('Last Seen By'),
+    last_toucher = fields.Function(fields.Char('Modification User'),
                                    'get_last_touch')
 
     @staticmethod
@@ -137,7 +137,7 @@ class QueueEntry(ModelSQL, ModelView):
             return dict([(x.id, x.write_date or x.create_date)
                         for x in instances])
         elif name == 'last_toucher':
-            return dict([(x.id, x.write_uid and x.write_uid.name or x.create_uid.name)
+            return dict([(x.id, x.write_uid.name if x.write_uid else None)
                         for x in instances])
 
     @classmethod
