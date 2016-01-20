@@ -4,7 +4,7 @@ from trytond.pool import Pool
 from trytond.model import ModelView, ModelSQL, fields
 from trytond.pyson import Eval, Not, Equal, Or, Greater, In, Len, Bool
 from .triage import TriageEntry
-from .common import APM, SEX_OPTIONS
+from .common import APM, SEX_OPTIONS, TRIAGE_MAX_PRIO
 
 QUEUE_ENTRY_STATES = [
     ('0', ''),
@@ -68,13 +68,13 @@ class QueueEntry(ModelSQL, ModelView):
 
     @staticmethod
     def default_priority():
-        return 0
+        return TRIAGE_MAX_PRIO
 
     @classmethod
     def __setup__(cls):
         super(QueueEntry, cls).__setup__()
         cls.write_date.string = 'Last Modified'
-        cls._order = [('priority', 'DESC'), ('last_call', 'ASC'),
+        cls._order = [('priority', 'ASC'), ('last_call', 'ASC'),
                       ('create_date', 'ASC')]
         cls._buttons.update(
             btn_inspect={},

@@ -19,7 +19,7 @@ class Appointment(ModelSQL, ModelView):
         prio_ids = []
         if 'urgency' in values:
             prio_ids = map(int, records)
-            prio = APM.get(values['urgency'])
+            prio = APM.get(values['urgency'], APM[None])
 
         retval = super(Appointment, cls).write(records, values)
         if prio_ids:

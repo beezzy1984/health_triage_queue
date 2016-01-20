@@ -2,11 +2,8 @@
 from trytond.pool import Pool
 from trytond.model import ModelView, ModelSQL, fields
 from trytond.pyson import Eval, Not, Equal, Or, Bool, In, Len
-from .common import ID_TYPES, SEX_OPTIONS
+from .common import ID_TYPES, SEX_OPTIONS, TRIAGE_MAX_PRIO, TRIAGE_PRIO
 
-
-TRIAGE_MAX_PRIO = 4
-TRIAGE_PRIO = [(str(x), str(x)) for x in range(TRIAGE_MAX_PRIO+1)]
 TRIAGE_STATUS = [
     ('pending', 'Pending'),
     ('tobeseen', 'To be seen'),
@@ -33,7 +30,8 @@ class TriageEntry(ModelSQL, ModelView):
                             states={'readonly': Bool(Eval('patient'))})
     id_display = fields.Function(fields.Char('ID Display'), 'get_id_display')
     patient = fields.Many2One('gnuhealth.patient', 'Patient')
-    priority = fields.Selection(TRIAGE_PRIO, 'Priority')
+    priority = fields.Selection(TRIAGE_PRIO, 'ESI Priority', sort=False,
+                                help='Emergency Severity Index Triage Level')
     injury = fields.Boolean('Injury')
     review = fields.Boolean('Review')
     status = fields.Selection(TRIAGE_STATUS, 'Status', sort=False)
@@ -56,7 +54,7 @@ class TriageEntry(ModelSQL, ModelView):
             if not vdict.get('queue_entry'):
                 vdict['queue_entry'] = [('create',
                                          [{'busy': False,
-                                           'priority': int(vdict.get('priority', '0'))}])]
+                                           'priority': int(vdict.get('priority', '5'))}])]
         return super(TriageEntry, cls).create(vlist)
 
     @classmethod
@@ -66,17 +64,17 @@ class TriageEntry(ModelSQL, ModelView):
             queue_model = Pool().get('gnuhealth.patient.queue_entry')
             qentries = queue_model.search(
                 ['AND', ('triage_entry', 'in', triage_entries),
-                 ['OR', ('appointment', '=', None), ('priority', '<', prio)]])
+                 ('appointment', '=', None)])  # , ('priority', '>', prio)]])
 
             values_to_write['queue_entry'] = [('write', [qentries,
-                                               {'priority': prio}])]
+                                                         {'priority': prio}])]
 
         return triage_entries, values_to_write
 
     @classmethod
     def write(cls, records, values, *args):
         # update queue priority when mine updated
-        # but only if it's lower or there's no appointment
+        # but only if it's higher or there's no appointment
         records, values = cls.make_priority_updates(records, values)
         newargs = []
         if args:
@@ -88,7 +86,7 @@ class TriageEntry(ModelSQL, ModelView):
 
     @staticmethod
     def default_priority():
-        return '0'
+        return TRIAGE_MAX_PRIO
 
     @staticmethod
     def default_status():
