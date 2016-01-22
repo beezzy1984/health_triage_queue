@@ -48,10 +48,10 @@ class PatientEncounter(ModelSQL, ModelView):
                  ('encounter', '=', None)],
                 fields_names=['appointment', 'id'])
             aq = dict([(k['appointment'], k['id']) for k in queue_entries])
-        for vdict in vlist:
-            vqentry = aq.get(vdict['appointment'], False)
-            if vqentry:
-                vdict['queue_entry'] = [('add', [vqentry])]
+            for vdict in vlist:
+                vqentry = aq.get(vdict['appointment'], False)
+                if vqentry:
+                    vdict['queue_entry'] = [('add', [vqentry])]
                 # else:
                     # create the queue entry instead. why does it not exist?
                     # vdict['queue_entry'] = [('create',
