@@ -21,7 +21,8 @@ class TriageEntry(ModelSQL, ModelView):
     __name__ = 'gnuhealth.triage.entry'
     firstname = fields.Char('First Name', states=REQD_IF_NOPATIENT)
     lastname = fields.Char('Last Name', states=REQD_IF_NOPATIENT)
-    sex = fields.Selection(SEX_OPTIONS, 'Sex', states=REQD_IF_NOPATIENT)
+    sex = fields.Selection([(None, '')] + SEX_OPTIONS, 'Sex',
+                           states=REQD_IF_NOPATIENT)
     age = fields.Char('Age', states=REQD_IF_NOPATIENT)
     id_type = fields.Selection(ID_TYPES, 'ID Type', states={
         'required': Bool(Eval('id_number')), 'readonly': Bool(Eval('patient'))},
@@ -52,9 +53,14 @@ class TriageEntry(ModelSQL, ModelView):
         # add me to the queue when created
         for vdict in vlist:
             if not vdict.get('queue_entry'):
+                try:
+                    vqprio = int(vdict.get('priority', TRIAGE_MAX_PRIO))
+                except TypeError:
+                    vqprio = int(TRIAGE_MAX_PRIO)
+
                 vdict['queue_entry'] = [('create',
                                          [{'busy': False,
-                                           'priority': int(vdict.get('priority', '5'))}])]
+                                           'priority': vqprio}])]
         return super(TriageEntry, cls).create(vlist)
 
     @classmethod
