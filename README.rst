@@ -39,11 +39,8 @@ The three buttons, two of which are active at any one time are: *call*,
 * **inspect**: Open the related object without setting the busy flag
 
 Interaction with other models
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Appointment
-~~~~~~~~~~~~
-When an appointment is changed from *Scheduled* to *Arrived/Waiting* by
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+When an **Appointment** is changed from *Scheduled* to *Arrived/Waiting* by
 clicking the *Patient Arrived* button, a queue entry is automatically
 created and associated with that appointment.
 
