@@ -37,18 +37,18 @@ for key in ('depends', 'extras_depend', 'xml'):
     if key in info:
         info[key] = info[key].strip().splitlines()
 
-myversion = '==%s' % info.get('version', '0.0.1')
+jmversion = '>=2.0,<2.1'
 
 requires = [
     'trytond>=%d.%d,<%d.%d' % tryton_version,
     'trytond_health_encounter>=0.2,<0.3',
-    'trytond_health_jamaica' + myversion
+    'trytond_health_jamaica' + jmversion
 ]
 
 setup(
     name=prefix + name,
     version=info.get('version', '0.0.1'),
-    description=info.get('description', 'Jamaica ePAS Triage Queue'),
+    description=info.get('description', 'GNU Health Triage and Queue Module'),
     long_description=read('README.rst'),
     author='Marc Murray',
     author_email='murraym@moh.gov.jm',
