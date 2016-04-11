@@ -3,7 +3,6 @@ from datetime import datetime
 from trytond.pool import Pool
 from trytond.model import ModelView, ModelSQL, fields
 from trytond.pyson import Eval, Not, Equal, Or, Greater, In, Len, Bool
-from .triage import TriageEntry
 from .common import APM, SEX_OPTIONS, TRIAGE_MAX_PRIO
 
 QUEUE_ENTRY_STATES = [
@@ -16,6 +15,7 @@ QUEUE_ENTRY_STATES = [
 ]
 
 APPT_DONE_STATES = ['done', 'user_cancelled', 'center_cancelled', 'no_show']
+
 
 class QueueEntry(ModelSQL, ModelView):
     'Queue Entry'
@@ -37,8 +37,8 @@ class QueueEntry(ModelSQL, ModelView):
         fields.Char('Encounter Components'), 'get_encounter_component_set')
     encounter_component_count = fields.Function(
         fields.Integer('Component Count'), 'get_encounter_component_set')
-    entry_state = fields.Function(fields.Selection(QUEUE_ENTRY_STATES, 'State'),
-                                  'get_qentry_state',
+    entry_state = fields.Function(fields.Selection(QUEUE_ENTRY_STATES,
+                                  'State'), 'get_qentry_state',
                                   searcher='search_qentry_state')
     name = fields.Function(fields.Char('Name'), 'get_patient_name',
                            searcher='search_patient_name')
@@ -47,6 +47,9 @@ class QueueEntry(ModelSQL, ModelView):
     sex = fields.Function(fields.Selection(SEX_OPTIONS, 'Sex'),
                           'get_sex', searcher='search_sex')
     age = fields.Function(fields.Char('Age'), 'get_age')
+    primary_complaint = fields.Function(fields.Char('Primary Complaint'),
+                                        'get_primary_complaint',
+                                        searhcer='search_primary_complaint')
     notes = fields.Function(fields.Text('Notes/Info'), 'get_notes_info')
     queue_notes = fields.One2Many('gnuhealth.patient.queue_entry_note',
                                   'queue_entry', 'Queue Notes',
@@ -299,6 +302,25 @@ class QueueEntry(ModelSQL, ModelView):
         if qnotes:
             details.extend(['-' * 20] + qnotes)
         return u'\n'.join(details)
+
+        @classmethod
+        def get_primary_complaint(cls, instances, name):
+            outd = {}
+            for i in instances:
+                ix = i.id
+                outd[ix] = ''
+                if i.encounter:
+                    outd[ix] = i.encounter.primary_complaint
+                if i.triage_entry and not outd[ix]:
+                    outd[ix] = i.triage_entry.complaint
+            return outd
+
+        @classmethod
+        def search_primary_complaint(cls, name, clause):
+            subclause = tuple(clause[1:])
+            tclause = ('triage_entry.complaint', ) + subclause
+            eclause = ('encounter.primary_complaint', ) + subclause
+            return ['OR', tclause, eclause]
 
     # Button Functions for :
     # Inspect: Does the same as call except doesn't create new records nor

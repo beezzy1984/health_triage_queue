@@ -21,11 +21,13 @@ APM = {None: 5, 'a': 5, 'b': 3, 'c': 1}
 
 # Max value for triage priority
 # based on the ESI = Emergency Severity Index
-TRIAGE_MAX_PRIO = 5
+# 99 used as Not-Prioritised
+TRIAGE_MAX_PRIO = 99
 
 # ESI_NAMES = ['Normal', 'Urgent', 'Very Urgent', 'Emergency', 'Resuscitation']
 ESI_NAMES = ['Non-Urgent', 'Less Urgent', 'Urgent', 'Emergent',
              'Resuscitation']
 
-TRIAGE_PRIO = [(str(x), '%d - %s' % (x, y)) for x, y in
-               zip(range(TRIAGE_MAX_PRIO, 0, -1), ESI_NAMES)]
+TRIAGE_PRIO = [('99', 'Not prioritised')] + [
+    (str(x), '%d - %s' % (x, y)) for x, y in
+    zip(range(TRIAGE_MAX_PRIO, 0, -1), ESI_NAMES)]
