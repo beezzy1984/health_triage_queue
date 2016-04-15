@@ -49,7 +49,7 @@ class QueueEntry(ModelSQL, ModelView):
     age = fields.Function(fields.Char('Age'), 'get_age')
     primary_complaint = fields.Function(fields.Char('Primary Complaint'),
                                         'get_primary_complaint',
-                                        searhcer='search_primary_complaint')
+                                        searcher='search_primary_complaint')
     notes = fields.Function(fields.Text('Notes/Info'), 'get_notes_info')
     queue_notes = fields.One2Many('gnuhealth.patient.queue_entry_note',
                                   'queue_entry', 'Queue Notes',
