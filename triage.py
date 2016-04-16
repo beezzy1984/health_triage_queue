@@ -25,7 +25,8 @@ class TriageEntry(ModelSQL, ModelView):
                            states=REQD_IF_NOPATIENT)
     age = fields.Char('Age', states=REQD_IF_NOPATIENT)
     id_type = fields.Selection(ID_TYPES, 'ID Type', states={
-        'required': Bool(Eval('id_number')), 'readonly': Bool(Eval('patient'))},
+        'required': Bool(Eval('id_number')),
+        'readonly': Bool(Eval('patient'))},
         sort=False)
     id_number = fields.Char('ID Number',
                             states={'readonly': Bool(Eval('patient'))})
@@ -47,7 +48,6 @@ class TriageEntry(ModelSQL, ModelView):
     queue_entry = fields.One2Many('gnuhealth.patient.queue_entry',
                                   'triage_entry', 'Queue Entry', size=1)
 
-
     @classmethod
     def create(cls, vlist):
         # add me to the queue when created
@@ -65,16 +65,15 @@ class TriageEntry(ModelSQL, ModelView):
 
     @classmethod
     def make_priority_updates(cls, triage_entries, values_to_write):
-        if 'priority' in values_to_write and 'queue_entry' not in values_to_write:
+        if ('priority' in values_to_write and
+                'queue_entry' not in values_to_write):
             prio = int(values_to_write['priority'])
             queue_model = Pool().get('gnuhealth.patient.queue_entry')
             qentries = queue_model.search(
                 ['AND', ('triage_entry', 'in', triage_entries),
                  ('appointment', '=', None)])  # , ('priority', '>', prio)]])
-
-            values_to_write['queue_entry'] = [('write', [qentries,
-                                                         {'priority': prio}])]
-
+            values_to_write['queue_entry'] = [('write', map(int, qentries),
+                                               {'priority': prio})]
         return triage_entries, values_to_write
 
     @classmethod
@@ -92,7 +91,7 @@ class TriageEntry(ModelSQL, ModelView):
 
     @staticmethod
     def default_priority():
-        return TRIAGE_MAX_PRIO
+        return str(TRIAGE_MAX_PRIO)
 
     @staticmethod
     def default_status():

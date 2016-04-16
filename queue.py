@@ -54,8 +54,8 @@ class QueueEntry(ModelSQL, ModelView):
     queue_notes = fields.One2Many('gnuhealth.patient.queue_entry_note',
                                   'queue_entry', 'Queue Notes',
                                   states={'invisible': True})
-    last_call = fields.DateTime('Last Seen', select=True)
-    priority = fields.Integer('Priority', readonly=True)
+    last_call = fields.DateTime('Last Called', select=True)
+    priority = fields.Integer('Priority', states={'readonly': True})
     last_touch = fields.Function(fields.DateTime('Last Seen', format='%H:%M'),
                                  'get_last_touch')
     last_toucher = fields.Function(fields.Char('Modification User'),
@@ -86,7 +86,7 @@ class QueueEntry(ModelSQL, ModelView):
             btn_dismiss={'readonly': Not(Eval('busy', False))}
         )
 
-    #TODo: Handle the situation that updates the priority field
+    # TODo: Handle the situation that updates the priority field
     # Priority is calculated as follows:
     # prio = 0
     # if triage:
@@ -107,12 +107,11 @@ class QueueEntry(ModelSQL, ModelView):
             vdict['last_call'] = datetime.now()
         return vdict
 
-
     @classmethod
     def write(cls, instances, values, *args):
         # overload to handle the following situation:
         # if something is written in line-notes, create a QueueEntryNote
-        # object with that as the note. To do that we will 
+        # object with that as the note. To do that we will
         values = cls._swapout(values)
         if args:
             newargs = [(x, cls._swapout(y)) for x, y in args]
@@ -155,13 +154,14 @@ class QueueEntry(ModelSQL, ModelView):
 
     @classmethod
     def get_upi_mrn_id(cls, instances, name):
-        out = dict([(x.id, '%s ; %s' % (
+        out = dict([(x.id, '%s; %s' % (
                         x.appointment.patient.puid,
                         x.appointment.patient.medical_record_num))
                     for x in instances if x.appointment])
 
         out.update([(x.id, x.triage_entry.id_display)
-                    for x in instances if x.triage_entry and not x.appointment])
+                    for x in instances if x.triage_entry and
+                    not x.appointment])
         return out
         # out = {}
         # for x in instances:
@@ -191,7 +191,8 @@ class QueueEntry(ModelSQL, ModelView):
             if name == 'encounter_component_count':
                 return len(self.encounter.components)
             elif name == 'encounter_components':
-                complist = [x.component_type for x in self.encounter.components]
+                complist = [x.component_type
+                            for x in self.encounter.components]
                 return ', '.join(reversed(complist))
 
         if name == 'encounter_component_count':
@@ -303,24 +304,24 @@ class QueueEntry(ModelSQL, ModelView):
             details.extend(['-' * 20] + qnotes)
         return u'\n'.join(details)
 
-        @classmethod
-        def get_primary_complaint(cls, instances, name):
-            outd = {}
-            for i in instances:
-                ix = i.id
-                outd[ix] = ''
-                if i.encounter:
-                    outd[ix] = i.encounter.primary_complaint
-                if i.triage_entry and not outd[ix]:
-                    outd[ix] = i.triage_entry.complaint
-            return outd
+    @classmethod
+    def get_primary_complaint(cls, instances, name):
+        outd = {}
+        for i in instances:
+            ix = i.id
+            outd[ix] = ''
+            if i.encounter:
+                outd[ix] = i.encounter.primary_complaint
+            if i.triage_entry and not outd[ix]:
+                outd[ix] = i.triage_entry.complaint
+        return outd
 
-        @classmethod
-        def search_primary_complaint(cls, name, clause):
-            subclause = tuple(clause[1:])
-            tclause = ('triage_entry.complaint', ) + subclause
-            eclause = ('encounter.primary_complaint', ) + subclause
-            return ['OR', tclause, eclause]
+    @classmethod
+    def search_primary_complaint(cls, name, clause):
+        subclause = tuple(clause[1:])
+        tclause = ('triage_entry.complaint', ) + subclause
+        eclause = ('encounter.primary_complaint', ) + subclause
+        return ['OR', tclause, eclause]
 
     # Button Functions for :
     # Inspect: Does the same as call except doesn't create new records nor
