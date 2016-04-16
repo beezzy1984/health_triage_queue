@@ -27,7 +27,8 @@ TRIAGE_MAX_PRIO = 99
 # ESI_NAMES = ['Normal', 'Urgent', 'Very Urgent', 'Emergency', 'Resuscitation']
 ESI_NAMES = ['Non-Urgent', 'Less Urgent', 'Urgent', 'Emergent',
              'Resuscitation']
+ESI_MAX_PRIO = len(ESI_NAMES)
 
 TRIAGE_PRIO = [('99', 'Not prioritised')] + [
     (str(x), '%d - %s' % (x, y)) for x, y in
-    zip(range(TRIAGE_MAX_PRIO, 0, -1), ESI_NAMES)]
+    zip(range(ESI_MAX_PRIO, 0, -1), ESI_NAMES)]
