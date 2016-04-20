@@ -2,7 +2,7 @@
 from datetime import datetime
 from trytond.pool import Pool
 from trytond.model import ModelView, ModelSQL, fields
-from trytond.pyson import Eval, Not, Equal, Or, Greater, In, Len, Bool
+from trytond.pyson import Eval, Not, Equal, Or, Greater, In, Len, And
 from .common import APM, SEX_OPTIONS, TRIAGE_MAX_PRIO
 
 QUEUE_ENTRY_STATES = [
@@ -25,9 +25,10 @@ class QueueEntry(ModelSQL, ModelView):
     triage_entry = fields.Many2One('gnuhealth.triage.entry', 'Triage Entry',
                                    states={'readonly': Eval('id', 0) > 0},
                                    select=True)
-    appointment = fields.Many2One('gnuhealth.appointment', 'Appointment',
-                                  states={'readonly': Eval('id', 0) > 0},
-                                  select=True)
+    appointment = fields.Many2One(
+        'gnuhealth.appointment', 'Appointment', select=True,
+        states={'readonly': And(Eval('id', 0) > 0,
+                                Eval('entry_state', '')  != '2')})
     encounter = fields.Many2One('gnuhealth.encounter', 'Encounter',
                                 states={'invisible': True})
     busy = fields.Boolean('Busy', states={'readonly': True}, select=True)
