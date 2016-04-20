@@ -20,26 +20,89 @@
         <field name="age" />
     </group>
     <newline />
-    <group col="6" colspan="12" id="triage_notes">
+    <group col="12" colspan="12" id="triage_sub_header">
         <label name="id_type" />
         <field name="id_type" />
         <label name="id_number" />
-        <field name="id_number" />
-        <newline />
+        <field name="id_number" colspan="2" />
+        <label name="priority" />
+        <field name="priority" />
         <label name="injury" />
         <field name="injury" />
         <label name="review" />
         <field name="review" />
-        <label name="priority" />
-        <field name="priority" />
     </group>
-    <group string="Notes" id="grp_triage_notes" colspan="12">
-        <group id="grp_primary_complaint" col="4" colspan="12">
-            <label name="complaint" colspan="1" />
-            <field name="complaint" colspan="3" />
-        </group>
-        <newline />
-        <field name="notes" colspan="12" />
-        <!-- <field name="queue_entry" states="{'invisible': True}" /> -->
+    <group id="grp_primary_complaint" col="6" colspan="12">
+        <label name="complaint" colspan="1" />
+        <field name="complaint" colspan="3" />
     </group>
+    <notebook col="12" colspan="12">
+        <page id="page_vitals" string="Vitals" col="6">
+            <!-- <group colspan="12" col="6" string="Vital Signs" id="group_vital_signs"> -->
+                <label name="temperature"/>
+                <field name="temperature"/>
+                <label name="systolic"/>
+                <field name="systolic"/>
+                <label name="diastolic"/>
+                <field name="diastolic"/>
+                <label name="bpm"/>
+                <field name="bpm"/>
+                <label name="respiratory_rate"/>
+                <field name="respiratory_rate"/>
+                <label name="osat"/>
+                <field name="osat"/>
+
+                <label name="lmp" />
+                <field name="lmp" />
+                <label name="pregnant"/>
+                <field name="pregnant"/>
+                <field name="childbearing_age" invisible="1" />
+            <!-- </group> -->
+        </page>
+        <page id="page_notes" string="Notes">
+            <group string="Notes" id="grp_triage_notes" colspan="12">
+                <newline />
+                <field name="notes" colspan="12" />
+                <!-- <field name="queue_entry" states="{'invisible': True}" /> -->
+            </group>
+        </page>
+        <page id="page_urine" string="Urinalysis">
+            <group colspan="12" col="6" string="Urinalysis" id="group_nursing_urinalysis">
+                <label name="uri_blood"/>
+                <field name="uri_blood" />
+                <label name="uri_nitrite"/>
+                <field name="uri_nitrite"/>
+                <label name="uri_protein"/>
+                <field name="uri_protein" />
+
+                <label name="uri_glucose"/>
+                <field name="uri_glucose"/>
+                <label name="uri_ketone"/>
+                <field name="uri_ketone"/>
+                <label name="uri_leuko"/>
+                <field name="uri_leuko"/>
+                <group id="last_row" col="8" colspan="6">
+                    <label name="uri_bilirubin"/>
+                    <field name="uri_bilirubin" />
+                    <label name="uri_urobili" />
+                    <field name="uri_urobili" />
+                    <label name="uri_ph"/>
+                    <field name="uri_ph"/>
+                    <label name="uri_specific_gravity"/>
+                    <field name="uri_specific_gravity"/>
+                </group>
+            </group>
+        </page>
+    </notebook>
+
+<!--         <group colspan="6" string="Nutrition and Blood Sugar" id="group_patient_evaluation_nutrition" col="6">
+            <label name="malnutrition"/>
+            <field name="malnutrition"/>
+            <label name="dehydration"/>
+            <field name="dehydration"/>
+            <label name="glucose"/>
+            <field name="glucose"/>
+        </group> -->
+
+    
 </form>

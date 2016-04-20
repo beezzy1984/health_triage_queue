@@ -1,6 +1,8 @@
 
 SEX_OPTIONS = [('m', 'Male'), ('f', 'Female'), ('u', 'Unknown')]
 
+MENARCH = (8, 60)
+
 ID_TYPES = [
     (None, ''),
     ('trn', 'TRN'),
