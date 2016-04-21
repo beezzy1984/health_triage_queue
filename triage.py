@@ -9,6 +9,7 @@ from .common import (ID_TYPES, SEX_OPTIONS, TRIAGE_MAX_PRIO, TRIAGE_PRIO,
 TRIAGE_STATUS = [
     ('pending', 'Pending'),
     ('tobeseen', 'To be seen'),
+    ('admit', 'Admit to Ward'),
     ('resched', 'Reschedule'),
     ('refer', 'Refer to Other Facility'),
     ('done', 'Done')
@@ -126,6 +127,7 @@ class TriageEntry(ModelSQL, ModelView):
         'Dehydration', sort=False,
         help='If the patient show signs of dehydration.',
         states=SIGNED_STATES)
+    _history = True  # enable revision control from core
 
     @classmethod
     def create(cls, vlist):

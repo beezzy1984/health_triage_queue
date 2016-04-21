@@ -9,10 +9,9 @@ QUEUE_ENTRY_STATES = [
     ('0', ''),
     ('1', 'Triage'),
     ('2', 'Registration'),
-    ('3', 'Nurse/Pre-Evaluation'),
+    ('3', 'Pre-Evaluation/Nurse'),
     ('4', 'Evaluation'),
-    ('99', 'Done'),
-]
+    ('99', 'Done')]
 
 APPT_DONE_STATES = ['done', 'user_cancelled', 'center_cancelled', 'no_show']
 
@@ -28,7 +27,7 @@ class QueueEntry(ModelSQL, ModelView):
     appointment = fields.Many2One(
         'gnuhealth.appointment', 'Appointment', select=True,
         states={'readonly': And(Eval('id', 0) > 0,
-                                Eval('entry_state', '')  != '2')})
+                                Eval('entry_state', '') != '2')})
     encounter = fields.Many2One('gnuhealth.encounter', 'Encounter',
                                 states={'invisible': True})
     busy = fields.Boolean('Busy', states={'readonly': True}, select=True)
@@ -294,11 +293,16 @@ class QueueEntry(ModelSQL, ModelView):
                        self.encounter.short_summary]
         elif self.appointment:
             a = self.appointment
-            details = [u' '.join(x) for x in [
-                       (u'Appointment: ', a.appointment_date.strftime('%c')),
-                       (u'    Specialty: ', a.speciality.name),
-                       (u'    Status: ', a.state)]]
-        else:
+            details.extend(
+                [u' '.join(x) for x in [
+                    (u'Appointment: ', a.appointment_date.strftime('%c')),
+                    (u'    Specialty: ', a.speciality.name),
+                    (u'    Status: ', a.state)]])
+            details.append('')
+        # else:
+        if self.triage_entry:
+            details.append('Triage: Started %s' % (
+                           self.triage_entry.create_date.strftime('%c')))
             details.extend(filter(None, [self.triage_entry.complaint,
                                          self.triage_entry.notes]))
         if qnotes:
