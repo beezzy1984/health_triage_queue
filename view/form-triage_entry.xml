@@ -40,6 +40,30 @@
         <newline />
         <field name="notes" colspan="12" />
     </group>
+    <group id="grp_symptoms" string="Sings/Symptoms" colspan="12" col="8">
+        <label name="symp_respiratory" />
+        <field name="symp_respiratory" />
+        <label name="symp_jaundice" />
+        <field name="symp_jaundice" />
+        <label name="symp_rash" />
+        <field name="symp_rash" />
+        <label name="symp_hemorrhagic" />
+        <field name="symp_hemorrhagic" />
+        <newline />
+        <label name="symp_neurological" />
+        <field name="symp_neurological" />
+        <label name="symp_arthritis" />
+        <field name="symp_arthritis" />
+        <label name="symp_vomitting" />
+        <field name="symp_vomitting" />
+        <label name="symp_diarrhoea" />
+        <field name="symp_diarrhoea" />
+        <newline />
+        <label name="symp_fever" />
+        <field name="symp_fever" />
+        <label name="recent_travel_contact" />
+        <field name="recent_travel_contact" colspan="5" />
+    </group>
     <group colspan="12" col="6" string="Vital Signs" id="group_vital_signs">
         <label name="temperature"/>
         <field name="temperature"/>

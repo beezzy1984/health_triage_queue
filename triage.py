@@ -127,6 +127,19 @@ class TriageEntry(ModelSQL, ModelView):
         'Dehydration', sort=False,
         help='If the patient show signs of dehydration.',
         states=SIGNED_STATES)
+    symp_fever = fields.Boolean('Fever')
+    symp_respiratory = fields.Boolean('Respiratory', help="breathing problems")
+    symp_jaundice = fields.Boolean('Jaundice')
+    symp_rash = fields.Boolean('Rash')
+    symp_hemorrhagic = fields.Boolean("Hemorrhagic")
+    symp_neurological = fields.Boolean("Neurological")
+    symp_arthritis = fields.Boolean("Arthralgia/Arthritis")
+    symp_vomitting = fields.Boolean("Vomitting")
+    symp_diarrhoea = fields.Boolean("Diarrhoea")
+    recent_travel_contact = fields.Char(
+        "Countries visited/Contact with traveller",
+        help="Countries visited or from which there was contact with a"
+             "traveller within the last six weeks")
     _history = True  # enable revision control from core
 
     @classmethod
@@ -259,3 +272,11 @@ class TriageEntry(ModelSQL, ModelView):
     @staticmethod
     def uri_nitrite_selection():
         return [(None, '')] + URINALYSIS['nitrite']
+
+    @fields.depends('recent_travel_contact')
+    def autocomplete_recent_travel_contact(self, values):
+        country_model = Pool().get('country.country')
+        domain = []
+        countries = country_model.search_read(domain,
+                                              fields_names=['name', 'code'])
+        return ['%(name)s (%(code)s)' % c for c in countries]

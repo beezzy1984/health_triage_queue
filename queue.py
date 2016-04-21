@@ -253,14 +253,13 @@ class QueueEntry(ModelSQL, ModelView):
                                                        'refer']),
                         ('appointment.state', 'in', ['arrived', 'processing'])]
 
-    @classmethod
-    def get_sex(cls, instances, name):
-        out = dict([(x.id, x.appointment.patient.name.sex)
-                    for x in instances if x.appointment and
-                    x.appointment.patient])
-        out.update([(x.id, x.triage_entry.sex)
-                    for x in instances if not x.appointment])
-        return out
+    def get_sex(self, name):
+        if self.appointment and self.appointment.patient:
+            return self.appointment.patient.name.sex
+        elif self.triage_entry:
+            return self.triage_entry.sex
+        else:
+            return '--'
 
     @classmethod
     def search_sex(cls, name, clause):
@@ -268,13 +267,11 @@ class QueueEntry(ModelSQL, ModelView):
         return ['OR', ('triage_entry.sex', operator, operand),
                 ('appointment.patient.name.sex', operator, operand)]
 
-    @classmethod
-    def get_age(cls, instances, name):
-        out = dict([(x.id, x.appointment.patient.age)
-                    for x in instances if x.appointment])
-        out.update([(x.id, x.triage_entry.age)
-                    for x in instances if not x.appointment])
-        return out
+    def get_age(self, name):
+        if self.appointment:
+            return self.appointment.patient.age
+        else:
+            return self.triage_entry.age
 
     # @classmethod
     # def search_age(cls, name, clause):
@@ -290,7 +287,7 @@ class QueueEntry(ModelSQL, ModelView):
         if self.encounter:
             details = ['Encounter started: %s' % (
                        self.encounter.start_time.strftime('%c'),),
-                       self.encounter.short_summary]
+                       '    %s' % self.encounter.short_summary]
         elif self.appointment:
             a = self.appointment
             details.extend(
@@ -298,13 +295,14 @@ class QueueEntry(ModelSQL, ModelView):
                     (u'Appointment: ', a.appointment_date.strftime('%c')),
                     (u'    Specialty: ', a.speciality.name),
                     (u'    Status: ', a.state)]])
-            details.append('')
+            # details.append('')
         # else:
         if self.triage_entry:
             details.append('Triage: Started %s' % (
                            self.triage_entry.create_date.strftime('%c')))
-            details.extend(filter(None, [self.triage_entry.complaint,
-                                         self.triage_entry.notes]))
+            details.extend(['    %s' % x for x in
+                            filter(None, [self.triage_entry.complaint,
+                                          self.triage_entry.notes])])
         if qnotes:
             details.extend(['-' * 20] + qnotes)
         return u'\n'.join(details)
