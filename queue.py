@@ -125,22 +125,20 @@ class QueueEntry(ModelSQL, ModelView):
         newvlist = [cls._swapout(v, False) for v in vlist]
         return super(QueueEntry, cls).create(newvlist)
 
-    @classmethod
-    def get_patient_name(cls, instances, name):
-        out = dict([(x.id, x.appointment.patient.name.name) for x in instances
-                    if x.appointment])
-        out.update([(x.id, x.triage_entry.name) for x in instances
-                    if x.triage_entry and not x.appointment])
-        return out
+    def get_patient_name(self, name):
+        if self.appointment:
+            return self.appointment.patient.rec_name
+        elif self.triage_entry:
+            return self.triage_entry.name
+        else:
+            return '[No Name]'
 
-    @classmethod
-    def get_last_touch(cls, instances, name):
+    def get_last_touch(self, name):
         if name == 'last_touch':
-            return dict([(x.id, x.write_date or x.create_date)
-                        for x in instances])
+            return self.write_date and self.write_date or self.create_date
         elif name == 'last_toucher':
-            return dict([(x.id, x.write_uid.name if x.write_uid else None)
-                        for x in instances])
+            return self.write_uid.name if x.write_uid else None
+        return ''
 
     @classmethod
     def search_patient_name(cls, name, clause):
@@ -152,27 +150,13 @@ class QueueEntry(ModelSQL, ModelView):
                 dom.append((fld, operator, operand))
             return dom
 
-    @classmethod
-    def get_upi_mrn_id(cls, instances, name):
-        out = dict([(x.id, '%s; %s' % (
-                        x.appointment.patient.puid,
-                        x.appointment.patient.medical_record_num))
-                    for x in instances if x.appointment])
-
-        out.update([(x.id, x.triage_entry.id_display)
-                    for x in instances if x.triage_entry and
-                    not x.appointment])
-        return out
-        # out = {}
-        # for x in instances:
-        #     if x.appointment:
-        #         out[x.id] = 'UPI:%s  | MRN: %s' % (
-        #                 x.appointment.patient.puid,
-        #                 x.appointment.patient.medical_record_num)
-        #     elif x.triage_entry:
-        #         out[x.id] = x.triage_entry.id_display
-        #     else:
-        #         out[x.id] = ''
+    def get_upi_mrn_id(self, name):
+        if self.appointment:
+            return '%s; %s' % (self.appointment.patient.puid,
+                               self.appointment.patient.medical_record_num)
+        elif self.triage_entry:
+            return self.triage_entry.id_display
+        return ''
 
     @classmethod
     def search_upi_mrn_id(cls, name, clause):

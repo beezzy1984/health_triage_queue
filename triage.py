@@ -272,11 +272,3 @@ class TriageEntry(ModelSQL, ModelView):
     @staticmethod
     def uri_nitrite_selection():
         return [(None, '')] + URINALYSIS['nitrite']
-
-    @fields.depends('recent_travel_contact')
-    def autocomplete_recent_travel_contact(self, values):
-        country_model = Pool().get('country.country')
-        domain = []
-        countries = country_model.search_read(domain,
-                                              fields_names=['name', 'code'])
-        return ['%(name)s (%(code)s)' % c for c in countries]
