@@ -40,7 +40,7 @@
         <newline />
         <field name="notes" colspan="12" />
     </group>
-    <group id="grp_symptoms" string="Sings/Symptoms" colspan="12" col="8">
+    <group id="grp_symptoms" string="Signs/Symptoms" colspan="12" col="8">
         <label name="symp_respiratory" />
         <field name="symp_respiratory" />
         <label name="symp_jaundice" />

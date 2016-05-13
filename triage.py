@@ -138,7 +138,7 @@ class TriageEntry(ModelSQL, ModelView):
     symp_diarrhoea = fields.Boolean("Diarrhoea")
     recent_travel_contact = fields.Char(
         "Countries visited/Contact with traveller",
-        help="Countries visited or from which there was contact with a"
+        help="Countries visited or from which there was contact with a "
              "traveller within the last six weeks")
     _history = True  # enable revision control from core
 
@@ -225,7 +225,6 @@ class TriageEntry(ModelSQL, ModelView):
                               self.id_number])
         else:
             return ''
-
 
     def patient_search_result(self, name):
         # ToDo: perform search against patient/party and return

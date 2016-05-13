@@ -137,7 +137,7 @@ class QueueEntry(ModelSQL, ModelView):
         if name == 'last_touch':
             return self.write_date and self.write_date or self.create_date
         elif name == 'last_toucher':
-            return self.write_uid.name if x.write_uid else None
+            return self.write_uid.name if self.write_uid else None
         return ''
 
     @classmethod
