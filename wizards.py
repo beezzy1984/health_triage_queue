@@ -1,8 +1,11 @@
 
-from trytond.wizard import (Wizard, StateAction, StateTransition)
+from trytond.wizard import (Wizard, StateAction, StateTransition, StateView,
+                            Button)
 from trytond.transaction import Transaction
+from trytond.model import ModelView, fields
 from trytond.pool import Pool
-from trytond.pyson import PYSONEncoder
+from trytond.pyson import PYSONEncoder, Eval
+from datetime import datetime, timedelta
 
 
 class OneQItemWizard(Wizard):
@@ -22,7 +25,7 @@ class OneQItemWizard(Wizard):
     def __setup__(cls):
         super(OneQItemWizard, cls).__setup__()
         cls._error_messages.update({
-            'no_record_selected': 'You need to select an queue entry',
+            'no_record_selected': 'You need to select a queue entry',
         })
 
     def _touch_busy_flag(self, flag=False):
@@ -105,3 +108,124 @@ class QueueDismissWizard(OneQItemWizard):
         next_state = 'end'
         self.unset_entry_busy()
         return next_state
+
+
+class AppointmentSetup(ModelView):
+    'Setup Appointment'
+    __name__ = 'gnuhealth.queue_entry.appointment_setup'
+
+    has_patient = fields.Boolean('Patient tied to queue entry?')
+    patient = fields.Many2One(
+        'gnuhealth.patient', 'Patient', help="Find or create patient",
+        required=True, states={'readonly': Eval('has_patient', False)})
+    make_new = fields.Boolean('Create new appointment')
+    appointment = fields.Many2One('gnuhealth.appointment',
+                                  'Select Appointment',
+                                  domain=[('state', '=', 'free')],
+                                  states={'invisible': Eval('make_new', False)})
+    appointment_time = fields.DateTime(
+        'Date and Time', help='Select Date and time for appointment',
+        states={'required': Eval('make_new', False)})
+    specialty = fields.Many2One(
+        'gnuhealth.specialty', 'Specialty',
+        help='Medical Specialty / Sector',
+        states={'invisible': ~Eval('make_new', False),
+                'required': Eval('make_new', False)})
+    urgency = fields.Selection([
+        (None, ''),
+        ('a', 'Normal'),
+        ('b', 'Urgent'),
+        ('c', 'Medical Emergency'),
+        ], 'Appointment Urgency', sort=False)  #,
+        # states={'invisible': ~Eval('make_new', False),
+        #         'required': Eval('make_new', False)})
+
+    @fields.depends('appointment')
+    def on_change_appointment(self):
+        if self.appointment:
+            return {'appointment_time': self.appointment.appointment_date,
+                    'urgency': self.appointment.urgency}
+        return None
+
+
+class QueueAppointmentWizard(OneQItemWizard):
+    '''Create Appointment
+    This wizard creates an appointment in the "Arrive/Waiting" state
+    from a triage entry in the "registration" state.
+    '''
+    __name__ = 'gnuhealth.queue_entry.appointment_setup_wizard'
+    start = StateTransition()
+    setup_start = StateView(
+        'gnuhealth.queue_entry.appointment_setup',
+        'health_triage_queue.health_view_queue_appt_wiz0',
+        [Button('Cancel', 'end', 'tryton-cancel'),
+         Button('Ok', 'setup_finish', 'tryton-ok', default=True)])
+    setup_finish = StateTransition()
+
+    def transition_start(self):
+        qentry = self._qdata['obj']
+        if qentry.appointment or qentry.encounter:
+            # there's already an appointment here. nothing to do
+            return 'end'
+        else:
+            triage_entry = qentry.triage_entry
+            if triage_entry and triage_entry.patient:
+                # patient tied to the triage_entry
+                self._qdata['patient'] = triage_entry.patient
+                self._qdata['appt_urgency'] = 'a'
+                if triage_entry.priority in '12':
+                    self._qdata['appt_urgency'] = 'c'
+                elif triage_entry.priority in '34':
+                    self._qdata['appt_urgency'] = 'b'
+            return 'setup_start'
+
+    def default_setup_start(self, fields):
+        '''return default values for the setup-start state of the wizard'''
+        qdata = self._qdata
+        qitem = qdata['obj']
+        if 'patient' in qdata:
+            outd = {'has_patient': True, 'patient': int(qdata['patient'])}
+        else:
+            outd = {'has_patient': False}
+        if 'appt_urgency' in qdata:
+            outd['urgency'] = qdata['appt_urgency']
+        return outd
+
+    def transition_setup_finish(self):
+        starter = self.setup_start
+        pool = Pool()
+        appt_model = pool.get('gnuhealth.appointment')
+        queue_model = pool.get('gnuhealth.patient.queue_entry')
+        qentry = self._qdata['obj']
+        appt_data = {'state': 'confirmed', 'patient': starter.patient.id,
+                     # 'speciality': starter.specialty,
+                     'urgency': starter.urgency, 'healthprof': None}
+        if starter.make_new:
+            # create new appointment in scheduled state with patient, urgency and date
+            appt_data.update({'appointment_date': starter.appointment_time,
+                              'speciality': starter.specialty})
+            appointment, = appt_model.create([appt_data])
+            # save queue entry
+        else:  # existing appointment to be modified
+            appointment = starter.appointment
+            appt_model.write([appointment], appt_data)
+
+        # attach appointment to queue entry
+        queue_model.write([qentry], {'appointment': appointment})
+        # attach patient to triage entry if not previously attached:
+        triage = qentry.triage_entry
+        if not starter.has_patient and triage:
+            triage.patient = starter.patient
+            triage.save()
+        # set appointment to arrived
+        appt_model.write([appointment], {'state': 'arrived'})
+        return 'end'
+
+# if not, bring up the patient search screen - the one with the new button
+# once we have a patient object (attached to the wizard)
+# check if this person already has an appointment for today
+#   if so, tie it to the existing triage entry + queue
+# Checkbox/radio button to select whether to create new appt or use Unassigned one
+#   based on the choice from above
+#   setup PYSON domain that we'll use to open the Appointment window
+#   call action that opens the window

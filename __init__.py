@@ -3,7 +3,8 @@ from trytond.pool import Pool
 from .queue import QueueEntry, QueueEntryNote
 from .triage import TriageEntry
 from .health import Appointment, PatientEncounter
-from .wizards import QueueInspectWizard, QueueCallWizard, QueueDismissWizard
+from .wizards import (QueueInspectWizard, QueueCallWizard, QueueDismissWizard,
+                      AppointmentSetup, QueueAppointmentWizard)
 
 
 def register():
@@ -12,9 +13,11 @@ def register():
                   QueueEntryNote,
                   Appointment,
                   PatientEncounter,
+                  AppointmentSetup,
                   module='health_triage_queue', type_='model')
 
     Pool.register(QueueInspectWizard,
                   QueueCallWizard,
                   QueueDismissWizard,
+                  QueueAppointmentWizard,
                   module='health_triage_queue', type_='wizard')

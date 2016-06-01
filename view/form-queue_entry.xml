@@ -43,6 +43,8 @@
                 <button name="btn_dismiss" help="Dismiss patient" string="Dismi_ss"
                 icon="health-queue-dismiss" />
                 <button name="btn_inspect" help="Look at the details without calling the patient" icon="health-queue-peek" string="Inspect" />
+                <button name="btn_setup_appointment" string="Set Appointment"
+                    help="Assign patient record and appointment for encounter" />
             </group>
         </group>
     </group>

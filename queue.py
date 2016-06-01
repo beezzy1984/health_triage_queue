@@ -22,12 +22,13 @@ class QueueEntry(ModelSQL, ModelView):
 
     active = fields.Boolean('Active')
     triage_entry = fields.Many2One('gnuhealth.triage.entry', 'Triage Entry',
-                                   states={'readonly': Eval('id', 0) > 0},
+                                   states={'readonly': Eval('id', 0) > 0,
+                                           'required': ~Eval('appointment')},
                                    select=True)
     appointment = fields.Many2One(
         'gnuhealth.appointment', 'Appointment', select=True,
-        states={'readonly': And(Eval('id', 0) > 0,
-                                Eval('entry_state', '') != '2')})
+        states={'readonly': Eval('id', 0) > 0,
+                'required': ~Eval('triage_entry')})
     encounter = fields.Many2One('gnuhealth.encounter', 'Encounter',
                                 states={'invisible': True})
     busy = fields.Boolean('Busy', states={'readonly': True}, select=True)
@@ -83,18 +84,16 @@ class QueueEntry(ModelSQL, ModelView):
             btn_inspect={},
             btn_call={'readonly': Or(Eval('busy', False),
                                      Equal('99', Eval('entry_state', '0')))},
-            btn_dismiss={'readonly': Not(Eval('busy', False))}
-        )
-
-    # TODo: Handle the situation that updates the priority field
-    # Priority is calculated as follows:
-    # prio = 0
-    # if triage:
-    #   prio = int(triage.priority)
-    # if appointment:
-    #   aprio = {'a':0, 'b':2, 'c':4}[appointment.urgency]
-    #     if aprio > prio
-    #         prio = aprio
+            btn_dismiss={'readonly': Not(Eval('busy', False))},
+            btn_setup_appointment={
+                'invisible': Not(In(Eval('triage_entry.status', '0'),
+                                    ['tobeseen', 'resched']))
+            })
+        cls._sql_constraints += [
+            ('triage_uniq', 'UNIQUE(triage_entry)',
+             'Triage entry already in the queue'),
+            ('appointment_uniq', 'UNIQUE(appointment)',
+             'Appointment already in the queue')]
 
     @classmethod
     def _swapout(cls, vdict, is_write=True):
@@ -255,7 +254,10 @@ class QueueEntry(ModelSQL, ModelView):
         if self.appointment:
             return self.appointment.patient.age
         else:
-            return self.triage_entry.age
+            try:
+                return self.triage_entry.age
+            except AttributeError:
+                return '--'
 
     # @classmethod
     # def search_age(cls, name, clause):
@@ -282,8 +284,9 @@ class QueueEntry(ModelSQL, ModelView):
             # details.append('')
         # else:
         if self.triage_entry:
-            details.append('Triage: Started %s' % (
-                           self.triage_entry.create_date.strftime('%c')))
+            details.append('Triage: Started %s,\n    status: %s' % (
+                           self.triage_entry.create_date.strftime('%c'),
+                           self.triage_entry.status_display))
             details.extend(['    %s' % x for x in
                             filter(None, [self.triage_entry.complaint,
                                           self.triage_entry.notes])])
@@ -336,6 +339,11 @@ class QueueEntry(ModelSQL, ModelView):
     @classmethod
     @ModelView.button_action('health_triage_queue.act_queue_dismiss_starter')
     def btn_dismiss(cls, queue_entries):
+        pass
+
+    @classmethod
+    @ModelView.button_action('health_triage_queue.wiz_queue_appointment_setup')
+    def btn_setup_appointment(cls, queue_entries):
         pass
 
     @classmethod

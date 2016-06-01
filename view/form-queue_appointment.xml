@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form string="Setup Appointment" col="4">
+    <group id="group_patient" col="4" string="Patient">
+        <field name="patient" colspan="3" />
+        <field name="has_patient" invisible="1" />
+    </group>
+    <group id="grp_appt0" string="Appointment" colspan="4" col="6">
+        <label id="make_new_cust" string="Create new appointment?" />
+        <field name="make_new" />
+        <label name="appointment" />
+        <field name="appointment" colspan="3" />
+        <newline />
+        <label name="appointment_time" />
+        <field name="appointment_time" colspan="2" />
+        <label name="urgency" />
+        <field name="urgency" />
+        <newline />
+        <label name="specialty" />
+        <field name="specialty" colspan="2" />
+    </group>
+</form>

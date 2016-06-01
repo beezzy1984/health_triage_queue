@@ -170,6 +170,12 @@
         <!-- health_encounter.actwin_appt_encounter already does this so
             the wizard uses that one. None needed for encounter-->
 
+        <!-- ModelView to create/select appointment from the queue -->
+        <record model="ir.ui.view" id="health_view_queue_appt_wiz0">
+            <field name="model">gnuhealth.queue_entry.appointment_setup</field>
+            <field name="type">form</field>
+            <field name="name">form-queue_appointment</field>
+        </record>
 
     </data>
 </tryton>

@@ -48,5 +48,15 @@
             <field name="action_function">appointment_arrive_trigger</field>
         </record>
 
+        <record model="ir.action.wizard" id="wiz_queue_appointment_setup">
+            <field name="name">Setup Appointment</field>
+            <field name="wiz_name">gnuhealth.queue_entry.appointment_setup_wizard</field>
+        </record>
+<!--         <record model="ir.action.keyword" id="act_queue_appointment_setup">
+            <field name="keyword">form_action</field>
+            <field name="model">gnuhealth.patient.queue_entry,-1</field>
+            <field name="action" ref="wiz_queue_appointment_setup"/>
+        </record> -->
+
     </data>
 </tryton>
