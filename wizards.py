@@ -145,7 +145,7 @@ class AppointmentSetup(ModelView):
         if self.appointment:
             return {'appointment_time': self.appointment.appointment_date,
                     'urgency': self.appointment.urgency}
-        return None
+        return {}
 
 
 class QueueAppointmentWizard(OneQItemWizard):

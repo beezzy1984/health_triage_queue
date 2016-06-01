@@ -86,8 +86,7 @@ class QueueEntry(ModelSQL, ModelView):
                                      Equal('99', Eval('entry_state', '0')))},
             btn_dismiss={'readonly': Not(Eval('busy', False))},
             btn_setup_appointment={
-                'invisible': Not(In(Eval('triage_entry.status', '0'),
-                                    ['tobeseen', 'resched']))
+                'invisible': Not(Equal('2', Eval('entry_state', '0')))
             })
         cls._sql_constraints += [
             ('triage_uniq', 'UNIQUE(triage_entry)',

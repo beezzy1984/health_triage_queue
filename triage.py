@@ -167,8 +167,7 @@ class TriageEntry(ModelSQL, ModelView):
             prio = int(values_to_write['priority'])
             queue_model = Pool().get('gnuhealth.patient.queue_entry')
             qentries = queue_model.search(
-                ['AND', ('triage_entry', 'in', triage_entries),
-                 ('appointment', '=', None)])  # , ('priority', '>', prio)]])
+                [('triage_entry', 'in', triage_entries)])
             values_to_write['queue_entry'] = [('write', map(int, qentries),
                                                {'priority': prio})]
         return triage_entries, values_to_write
