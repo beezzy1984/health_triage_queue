@@ -19,7 +19,7 @@ ID_TYPES = [
     ('other', 'Other')]
 
 # Appointment Priority Map
-APM = {None: 5, 'a': 5, 'b': 3, 'c': 1}
+APM = {None: 99, 'a': 5, 'b': 3, 'c': 1}
 
 # Max value for triage priority
 # based on the ESI = Emergency Severity Index
@@ -27,8 +27,7 @@ APM = {None: 5, 'a': 5, 'b': 3, 'c': 1}
 TRIAGE_MAX_PRIO = 99
 
 # ESI_NAMES = ['Normal', 'Urgent', 'Very Urgent', 'Emergency', 'Resuscitation']
-ESI_NAMES = ['Non-Urgent', 'Less Urgent', 'Urgent', 'Emergent',
-             'Resuscitation']
+ESI_NAMES = ['Non-Urgent', 'Less Urgent', 'Urgent', 'Very Urgent', 'Immediate']
 ESI_MAX_PRIO = len(ESI_NAMES)
 
 TRIAGE_PRIO = [('99', 'Not prioritised')] + [
