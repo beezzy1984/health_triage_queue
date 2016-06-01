@@ -14,6 +14,7 @@ TRIAGE_STATUS = [
     ('refer', 'Refer to Other Facility'),
     ('done', 'Done')
 ]
+TRIAGE_STATUS_LOOKUP = dict(TRIAGE_STATUS)
 
 REQD_IF_NOPATIENT = {'required': Not(Bool(Eval('patient'))),
                      'invisible': Bool(Eval('patient'))}
@@ -60,6 +61,8 @@ class TriageEntry(ModelSQL, ModelView):
     injury = fields.Boolean('Injury')
     review = fields.Boolean('Review')
     status = fields.Selection(TRIAGE_STATUS, 'Status', sort=False)
+    status_display = fields.Function(fields.Char('Status'),
+                                     'get_status_display')
     complaint = fields.Char('Primary Complaint')
     notes = fields.Text('Notes')
     upi = fields.Function(fields.Char('UPI'), 'get_patient_party_field')
@@ -191,14 +194,13 @@ class TriageEntry(ModelSQL, ModelView):
     def default_status():
         return 'pending'
 
-    @classmethod
-    def get_name(cls, instances, name):
+    def get_name(self, name):
         if name == 'name':
-            out = dict([(i.id, i.patient.name.name) for i in instances
-                        if i.patient])
-            out.update([(i.id, '%s, %s' % (i.lastname, i.firstname))
-                        for i in instances if not i.patient])
-        return out
+            if self.patient:
+                return self.patient.name.name
+            else:
+                return '%s, %s' % (self.lastname, self.firstname)
+        return ''
 
     @classmethod
     def search_name(cls, name, clause):
@@ -232,6 +234,9 @@ class TriageEntry(ModelSQL, ModelView):
         # the domain should include :
         # lastname, firstname, sex, id_type, id_number
         return []
+
+    def get_status_display(self, name):
+        return TRIAGE_STATUS_LOOKUP.get(self.status)
 
     def get_childbearing_age(self, name):
         if self.patient:
