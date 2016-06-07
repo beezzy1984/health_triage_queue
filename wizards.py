@@ -175,7 +175,7 @@ class QueueAppointmentWizard(OneQItemWizard):
                 self._qdata['appt_urgency'] = 'a'
                 if triage_entry.priority in '12':
                     self._qdata['appt_urgency'] = 'c'
-                elif triage_entry.priority in '34':
+                elif triage_entry.priority in '3':
                     self._qdata['appt_urgency'] = 'b'
             return 'setup_start'
 
@@ -216,16 +216,9 @@ class QueueAppointmentWizard(OneQItemWizard):
         triage = qentry.triage_entry
         if not starter.has_patient and triage:
             triage.patient = starter.patient
+            triage.status = 'done'
             triage.save()
         # set appointment to arrived
         appt_model.write([appointment], {'state': 'arrived'})
         return 'end'
 
-# if not, bring up the patient search screen - the one with the new button
-# once we have a patient object (attached to the wizard)
-# check if this person already has an appointment for today
-#   if so, tie it to the existing triage entry + queue
-# Checkbox/radio button to select whether to create new appt or use Unassigned one
-#   based on the choice from above
-#   setup PYSON domain that we'll use to open the Appointment window
-#   call action that opens the window
