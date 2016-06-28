@@ -6,10 +6,10 @@
     <field name="age" />
     <field name="sex" />
     <field name="primary_complaint" expand="1" />
-    <!-- <field name="specialty" /> -->
     <field name="entry_state" />
     <field name="last_call" />
     <field name="last_toucher" />
+    <field name="specialty" />
     <field name="encounter_components" />
     <field name="encounter_component_count" />
     <!-- <button string="Call" name="btn_call" /> -->

@@ -61,6 +61,9 @@ class QueueEntry(ModelSQL, ModelView):
                                  'get_last_touch')
     last_toucher = fields.Function(fields.Char('Modification User'),
                                    'get_last_touch')
+    specialty = fields.Function(fields.Many2One('gnuhealth.specialty',
+                                                'Specialty'),
+                                'get_specialty', searcher='search_specialty')
 
     @staticmethod
     def default_busy():
@@ -270,9 +273,9 @@ class QueueEntry(ModelSQL, ModelView):
                          self.queue_notes)
             details.extend([qnotes.pop(0), '-' * 20])
         if self.encounter:
-            details = ['Encounter started: %s' % (
+            details.extend(['Encounter started: %s' % (
                        self.encounter.start_time.strftime('%c'),),
-                       '    %s' % self.encounter.short_summary]
+                       '    %s' % self.encounter.short_summary])
         elif self.appointment:
             a = self.appointment
             details.extend(
@@ -311,6 +314,19 @@ class QueueEntry(ModelSQL, ModelView):
         tclause = ('triage_entry.complaint', ) + subclause
         eclause = ('encounter.primary_complaint', ) + subclause
         return ['OR', tclause, eclause]
+
+    def get_specialty(self, name):
+        if self.appointment:
+            return self.appointment.speciality.id
+        else:
+            # return '[Triage]'
+            return None
+
+    @classmethod
+    def search_specialty(cls, name, clause):
+        subclause = tuple(clause[1:])
+        newclause = ('appointment.speciality', ) + subclause
+        return ['AND', ('appointment', '!=', None), newclause]
 
     # Button Functions for :
     # Inspect: Does the same as call except doesn't create new records nor
