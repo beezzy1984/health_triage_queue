@@ -78,6 +78,8 @@
         <label name="osat"/>
         <field name="osat"/>
 
+        <label name="glucose" />
+        <field name="glucose" />
         <label name="lmp" />
         <field name="lmp" />
         <label name="pregnant"/>
