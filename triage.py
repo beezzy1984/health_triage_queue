@@ -89,7 +89,7 @@ class TriageEntry(ModelSQL, ModelView):
         'Oxygen Saturation',
         help='Oxygen Saturation(arterial).', states=SIGNED_STATES)
     temperature = fields.Float(
-        u'Temperature (°C)', digits=(4, 2),
+        u'Temperature (°C)', digits=(4, 1),
         help='Temperature in degrees celsius', states=SIGNED_STATES)
         # domain=[('temperature', '>', 25), ('temperature', '<', 50)])
     childbearing_age = fields.Function(fields.Boolean('Childbearing Age'),
@@ -98,8 +98,10 @@ class TriageEntry(ModelSQL, ModelView):
     lmp = fields.Date('Last Menstrual Period', states=STATE_NO_MENSES,
                       help='Date last menstrual period started')
     glucose = fields.Float(
-        'Glucose (mmol/l)', digits=(5, 2),
-        help='mmol/l. Reading from glucose meter', states=SIGNED_STATES)
+        'Glucose (mmol/l)', digits=(5, 1),
+        help='mmol/l. Reading from glucose meter', states=SIGNED_STATES,
+        domain=['OR', ('glucose', '=', None), ['AND', ('glucose', '>', 0),
+                                               ('glucose', '<', 55.1)]])
     uri_ph = fields.Numeric('pH', digits=(1, 1), states=SIGNED_STATES)
     uri_specific_gravity = fields.Numeric('Specific Gravity',
                                           digits=(1, 3), states=SIGNED_STATES)
