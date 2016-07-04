@@ -64,6 +64,8 @@ class QueueEntry(ModelSQL, ModelView):
     specialty = fields.Function(fields.Many2One('gnuhealth.specialty',
                                                 'Specialty'),
                                 'get_specialty', searcher='search_specialty')
+    visit_reason = fields.Function(fields.Char('Reason for Visit'), 
+                                   'get_visit_reason')
 
     @staticmethod
     def default_busy():
@@ -373,6 +375,14 @@ class QueueEntry(ModelSQL, ModelView):
                  'busy': False}
                 for a in appointments if a.id not in alreadict]
         cls.create(vals)
+
+    def get_visit_reason(self, name):
+        '''get reason fofr visit'''
+
+        if self.appointment.patient is None:
+            return None
+
+        return self.appointment.patient.visit_reason
 
 
 class QueueEntryNote(ModelView, ModelSQL):
