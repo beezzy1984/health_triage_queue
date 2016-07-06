@@ -64,7 +64,8 @@ class QueueEntry(ModelSQL, ModelView):
     specialty = fields.Function(fields.Many2One('gnuhealth.specialty',
                                                 'Specialty'),
                                 'get_specialty', searcher='search_specialty')
-    visit_reason = fields.Function(fields.Char('Reason for Visit'),
+    visit_reason = fields.Function(fields.Many2One('gnuhealth.pathology',
+                                                   'Reason for Visit'),
                                    'get_visit_reason')
 
     @staticmethod
@@ -285,6 +286,9 @@ class QueueEntry(ModelSQL, ModelView):
                     (u'Appointment: ', a.appointment_date.strftime('%c')),
                     (u'    Specialty: ', a.speciality.name),
                     (u'    Status: ', a.state)]])
+            if a.visit_reason:
+                details.insert(-2, ' '.join((u'    Reason for visit:',
+                                             a.visit_reason.rec_name)))
             # details.append('')
         # else:
         if self.triage_entry:
@@ -378,8 +382,8 @@ class QueueEntry(ModelSQL, ModelView):
 
     def get_visit_reason(self, name):
         '''get reason for visit'''
-        if self.appointment:
-            self.appointment.visit_reason
+        if self.appointment and self.appointment.visit_reason:
+            return self.appointment.visit_reason.id
         return None
 
 
