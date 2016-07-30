@@ -277,13 +277,13 @@ class QueueEntry(ModelSQL, ModelView):
             details.extend([qnotes.pop(0), '-' * 20])
         if self.encounter:
             details.extend(['Encounter started: %s' % (
-                       self.encounter.start_time.strftime('%c'),),
+                       self.encounter.start_time.strftime('%F %T'),),
                        '    %s' % self.encounter.short_summary])
         elif self.appointment:
             a = self.appointment
             details.extend(
                 [u' '.join(x) for x in [
-                    (u'Appointment: ', a.appointment_date.strftime('%c')),
+                    (u'Appointment: ', a.appointment_date.strftime('%F %T')),
                     (u'    Specialty: ', a.speciality.name),
                     (u'    Status: ', a.state)]])
             if a.visit_reason:
@@ -293,7 +293,7 @@ class QueueEntry(ModelSQL, ModelView):
         # else:
         if self.triage_entry:
             details.append('Triage: Started %s,\n    status: %s' % (
-                           self.triage_entry.create_date.strftime('%c'),
+                           self.triage_entry.create_date.strftime('%F %T'),
                            self.triage_entry.status_display))
             details.extend(['    %s' % x for x in
                             filter(None, [self.triage_entry.complaint,
