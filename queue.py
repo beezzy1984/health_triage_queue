@@ -65,7 +65,7 @@ class QueueEntry(ModelSQL, ModelView):
                                                 'Specialty'),
                                 'get_specialty', searcher='search_specialty')
     visit_reason = fields.Function(fields.Char('Reason for Visit'), 
-                                   'get_visit_reason')
+                                   getter='get_visit_reason')
 
     @staticmethod
     def default_busy():
@@ -379,7 +379,7 @@ class QueueEntry(ModelSQL, ModelView):
     def get_visit_reason(self, name):
         '''get reason fofr visit'''
 
-        if self.appointment.patient is None:
+        if not self.appointment.patient.visit_reason:
             return None
 
         return self.appointment.patient.visit_reason
