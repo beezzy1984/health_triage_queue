@@ -3,6 +3,7 @@ from datetime import datetime
 from trytond.pool import Pool
 from trytond.model import ModelView, ModelSQL, fields
 from trytond.pyson import Eval, Not, Equal, Or, Greater, In, Len, And
+from trytond.modules.health_jamaica.tryton_utils import localtime
 from .common import APM, SEX_OPTIONS, TRIAGE_MAX_PRIO
 
 QUEUE_ENTRY_STATES = [
@@ -277,13 +278,14 @@ class QueueEntry(ModelSQL, ModelView):
             details.extend([qnotes.pop(0), '-' * 20])
         if self.encounter:
             details.extend(['Encounter started: %s' % (
-                       self.encounter.start_time.strftime('%F %T'),),
+                       localtime(self.encounter.start_time).strftime('%F %T'),),
                        '    %s' % self.encounter.short_summary])
         elif self.appointment:
             a = self.appointment
             details.extend(
                 [u' '.join(x) for x in [
-                    (u'Appointment: ', a.appointment_date.strftime('%F %T')),
+                    (u'Appointment: ', 
+                     localtime(a.appointment_date).strftime('%F %T')),
                     (u'    Specialty: ', a.speciality.name),
                     (u'    Status: ', a.state)]])
             if a.visit_reason:
@@ -293,7 +295,8 @@ class QueueEntry(ModelSQL, ModelView):
         # else:
         if self.triage_entry:
             details.append('Triage: Started %s,\n    status: %s' % (
-                           self.triage_entry.create_date.strftime('%F %T'),
+                           localtime(
+                               self.triage_entry.create_date).strftime('%F %T'),
                            self.triage_entry.status_display))
             details.extend(['    %s' % x for x in
                             filter(None, [self.triage_entry.complaint,
