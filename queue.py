@@ -67,7 +67,7 @@ class QueueEntry(ModelSQL, ModelView):
                                 'get_specialty', searcher='search_specialty')
     visit_reason = fields.Function(fields.Many2One('gnuhealth.pathology',
                                                    'Reason for Visit'),
-                                   'get_visit_reason')
+                                   getter='get_visit_reason')
 
     @staticmethod
     def default_busy():
