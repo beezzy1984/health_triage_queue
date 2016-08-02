@@ -58,7 +58,12 @@ class TriageEntry(ModelSQL, ModelView):
     id_display = fields.Function(fields.Char('ID Display'), 'get_id_display')
     patient = fields.Many2One('gnuhealth.patient', 'Patient')
     priority = fields.Selection(TRIAGE_PRIO, 'ESI Priority', sort=False,
-                                help='Emergency Severity Index Triage Level')
+                                help='Emergency Severity Index Triage Level',
+                                states={'invisible': ~(Eval('id', 0) > 0)})
+    medical_alert = fields.Function(fields.Boolean('Medical Alert',
+                                    states={'invisible': Eval('id', 0) > 0}),
+                                    'get_medical_alert',
+                                    setter='set_medical_alert')
     injury = fields.Boolean('Injury')
     review = fields.Boolean('Review')
     status = fields.Selection(TRIAGE_STATUS, 'Status', sort=False)
@@ -266,6 +271,21 @@ class TriageEntry(ModelSQL, ModelView):
                 return False
             else:
                 return True
+
+    @classmethod
+    def get_medical_alert(cls, instances, name):
+        out = [(i.id, i.priority == '77') for i in instances]
+        return dict(out)
+
+    @classmethod
+    def set_medical_alert(cls, instances, name, value):
+        to_write = []
+        if value == False:
+            return
+        for i in instances:
+            if i.priority > 77:
+                to_write.append(i)
+        cls.write(to_write, {'priority': '77'})
 
     @staticmethod
     def default_childbearing_age():

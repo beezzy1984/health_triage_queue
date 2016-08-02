@@ -20,13 +20,15 @@
         <field name="age" />
     </group>
     <newline />
-    <group col="12" colspan="12" id="triage_sub_header">
+    <group col="16" colspan="12" id="triage_sub_header">
         <label name="id_type" />
         <field name="id_type" />
         <label name="id_number" />
-        <field name="id_number" colspan="2" />
+        <field name="id_number" />
         <label name="priority" />
         <field name="priority" />
+        <label name="medical_alert" />
+        <field name="medical_alert" />
         <label name="injury" />
         <field name="injury" />
         <label name="review" />
