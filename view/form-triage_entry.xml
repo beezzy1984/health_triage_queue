@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form string="Triage Entry" col="12">
-    <group col="8" colspan="12" id="triage_header">
+    <group col="10" colspan="12" id="triage_header">
         <label name="patient" />
         <field name="patient" colspan="2"/>
         <label name="upi" />
@@ -18,6 +18,7 @@
         <field name="sex" />
         <label name="age" />
         <field name="age" />
+        <field name="can_do_details" invisible="1" />
     </group>
     <newline />
     <group col="16" colspan="12" id="triage_sub_header">
@@ -34,15 +35,15 @@
         <label name="review" />
         <field name="review" />
     </group>
-    <group id="grp_primary_complaint" col="6" colspan="12">
+    <group id="grp_primary_complaint" col="6" colspan="12" states="{'invisible': Not(Eval('can_do_details', False))}">
         <label name="complaint" colspan="1" />
         <field name="complaint" colspan="3" />
     </group>
-    <group string="Notes" id="grp_triage_notes" colspan="12">
+    <group string="Notes" id="grp_triage_notes" colspan="12" states="{'invisible': Not(Eval('can_do_details', False))}">
         <newline />
         <field name="notes" colspan="12" />
     </group>
-    <group id="grp_symptoms" string="Signs/Symptoms" colspan="12" col="8">
+    <group id="grp_symptoms" string="Signs/Symptoms" colspan="12" col="8" states="{'invisible': Not(Eval('can_do_details', False))}">
         <label name="symp_respiratory" />
         <field name="symp_respiratory" />
         <label name="symp_jaundice" />
@@ -66,7 +67,7 @@
         <label name="recent_travel_contact" />
         <field name="recent_travel_contact" colspan="5" />
     </group>
-    <group colspan="12" col="6" string="Vital Signs" id="group_vital_signs">
+    <group colspan="12" col="6" string="Vital Signs" id="group_vital_signs" states="{'invisible': Not(Eval('can_do_details', False))}">
         <label name="temperature"/>
         <field name="temperature"/>
         <label name="systolic"/>
@@ -88,7 +89,7 @@
         <field name="pregnant"/>
         <field name="childbearing_age" invisible="1" />
     </group>
-    <group colspan="12" col="6" string="Urinalysis" id="group_nursing_urinalysis">
+    <group colspan="12" col="6" string="Urinalysis" id="group_nursing_urinalysis" states="{'invisible': Not(Eval('can_do_details', False))}">
         <label name="uri_blood"/>
         <field name="uri_blood" />
         <label name="uri_nitrite"/>

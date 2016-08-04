@@ -5,6 +5,7 @@ from trytond.model import ModelView, ModelSQL, fields
 from trytond.pyson import Eval, Not, Equal, Or, Bool, In, Len
 from .common import (ID_TYPES, SEX_OPTIONS, TRIAGE_MAX_PRIO, TRIAGE_PRIO,
                      MENARCH)
+from trytond.modules.health_jamaica.tryton_utils import get_model_field_perm
 
 TRIAGE_STATUS = [
     ('pending', 'Pending'),
@@ -152,6 +153,8 @@ class TriageEntry(ModelSQL, ModelView):
         help="Countries visited or from which there was contact with a "
              "traveller within the last six weeks")
     _history = True  # enable revision control from core
+    can_do_details = fields.Function(fields.Boolean('Can do triage details'),
+                                     'get_do_details_perm')
 
     @classmethod
     def create(cls, vlist):
@@ -286,6 +289,21 @@ class TriageEntry(ModelSQL, ModelView):
             if i.priority > 77:
                 to_write.append(i)
         cls.write(to_write, {'priority': '77'})
+
+    @classmethod
+    def get_do_details_perm(cls, instances, name):
+        user_has_perm = get_model_field_perm(cls.__name__, name, 'create',
+                                             default_deny=False)
+        outval = dict([(x.id, user_has_perm) for x in instances])
+        return outval
+
+    @staticmethod
+    def default_can_do_details():
+        user_has_perm = get_model_field_perm('gnuhealth.triage.entry',
+                                             'can_do_details', 'create',
+                                             default_deny=False)
+        return user_has_perm
+
 
     @staticmethod
     def default_childbearing_age():
