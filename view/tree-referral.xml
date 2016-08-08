@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tree string="Referrals">
+    <field name="name" />
+    <field name="sex" />
+    <field name="puid" />
+    <field name="age" />
+    <field name="referral_date" />
+    <field name="to_specialty" />
+    <field name="to_institution" />
+    <field name="from_institution" />
+    <field name="is_local" tree_invisible="1" />
+    <!-- <field name="reason1" /> -->
+    <!-- ToDo: Need to add a field <reason1> that is line 1 of reason -->
+
+</tree>

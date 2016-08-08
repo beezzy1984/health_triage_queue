@@ -1,4 +1,9 @@
 
+def plus_none(option_list):
+    '''adds a None option to the top of a selection listing'''
+    return [(None, '')] + option_list
+
+
 SEX_OPTIONS = [('m', 'Male'), ('f', 'Female'), ('u', 'Unknown')]
 
 MENARCH = (8, 60)

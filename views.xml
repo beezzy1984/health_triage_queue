@@ -177,5 +177,33 @@
             <field name="name">form-queue_appointment</field>
         </record>
 
+        <!-- Patient Referrals -->
+        <record model="ir.ui.view" id="health_view_form_referral">
+            <field name="model">gnuhealth.patient.referral</field>
+            <field name="type">form</field>
+            <field name="name">form-referral</field>
+        </record>
+        <record model="ir.ui.view" id="health_view_tree_referral">
+            <field name="model">gnuhealth.patient.referral</field>
+            <field name="type">tree</field>
+            <field name="name">tree-referral</field>
+        </record>
+        <record model="ir.action.act_window" id="health_actwin_referral">
+            <field name="name">Referrals</field>
+            <field name="res_model">gnuhealth.patient.referral</field>
+        </record>
+        <record model="ir.action.act_window.view" id="health_actview_referral_tree">
+            <field name="sequence" eval="10" />
+            <field name="view" ref="health_view_tree_referral" />
+            <field name="act_window" ref="health_actwin_referral" />
+        </record>
+        <record model="ir.action.act_window.view" id="health_actview_referral_form">
+            <field name="sequence" eval="20" />
+            <field name="view" ref="health_view_form_referral" />
+            <field name="act_window" ref="health_actwin_referral" />
+        </record>
+        <menuitem id="health_menu_patient_referrals"
+            action="health_actwin_referral"
+            parent="health.gnuhealth_menu" sequence="9" />
     </data>
 </tryton>
