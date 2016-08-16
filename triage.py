@@ -16,7 +16,7 @@ TRIAGE_STATUS = [
     ('done', 'Done')
 ]
 TRIAGE_STATUS_LOOKUP = dict(TRIAGE_STATUS)
-
+MED_ALERT = TRIAGE_PRIO[1][0]
 REQD_IF_NOPATIENT = {'required': Not(Bool(Eval('patient'))),
                      'invisible': Bool(Eval('patient'))}
 
@@ -162,7 +162,7 @@ class TriageEntry(ModelSQL, ModelView):
         for vdict in vlist:
             if not vdict.get('queue_entry'):
                 if vdict.get('medical_alert') is True:
-                    vqprio = TRIAGE_PRIO[1][0]  # medical alert
+                    vqprio = MED_ALERT
                 else:
                     try:
                         vqprio = int(vdict.get('priority', TRIAGE_MAX_PRIO))
@@ -280,7 +280,7 @@ class TriageEntry(ModelSQL, ModelView):
 
     @classmethod
     def get_medical_alert(cls, instances, name):
-        out = [(i.id, i.priority == '77') for i in instances]
+        out = [(i.id, i.priority == MED_ALERT) for i in instances]
         return dict(out)
 
     @classmethod
@@ -289,9 +289,9 @@ class TriageEntry(ModelSQL, ModelView):
         if value is False:
             return
         for i in instances:
-            if i.priority > '77':
+            if i.priority > MED_ALERT:
                 to_write.append(i)
-        cls.write(to_write, {'priority': '77'})
+        cls.write(to_write, {'priority': MED_ALERT})
 
     @classmethod
     def get_do_details_perm(cls, instances, name):
@@ -306,7 +306,6 @@ class TriageEntry(ModelSQL, ModelView):
                                              'can_do_details', 'create',
                                              default_deny=False)
         return user_has_perm
-
 
     @staticmethod
     def default_childbearing_age():
