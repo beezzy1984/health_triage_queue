@@ -161,10 +161,13 @@ class TriageEntry(ModelSQL, ModelView):
         # add me to the queue when created
         for vdict in vlist:
             if not vdict.get('queue_entry'):
-                try:
-                    vqprio = int(vdict.get('priority', TRIAGE_MAX_PRIO))
-                except TypeError:
-                    vqprio = int(TRIAGE_MAX_PRIO)
+                if vdict.get('medical_alert') is True:
+                    vqprio = TRIAGE_PRIO[1][0]  # medical alert
+                else:
+                    try:
+                        vqprio = int(vdict.get('priority', TRIAGE_MAX_PRIO))
+                    except TypeError:
+                        vqprio = int(TRIAGE_MAX_PRIO)
 
                 vdict['queue_entry'] = [('create',
                                          [{'busy': False,
@@ -283,10 +286,10 @@ class TriageEntry(ModelSQL, ModelView):
     @classmethod
     def set_medical_alert(cls, instances, name, value):
         to_write = []
-        if value == False:
+        if value is False:
             return
         for i in instances:
-            if i.priority > 77:
+            if i.priority > '77':
                 to_write.append(i)
         cls.write(to_write, {'priority': '77'})
 
