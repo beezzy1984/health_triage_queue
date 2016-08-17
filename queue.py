@@ -294,7 +294,7 @@ class QueueEntry(ModelSQL, ModelView):
             # details.append('')
         # else:
         if self.triage_entry:
-            details.append('Triage: Started %s,\n    status: %s' % (
+            details.append('First contact time: %s,\n    status: %s' % (
                            localtime(
                                self.triage_entry.create_date).strftime('%F %T'),
                            self.triage_entry.status_display))
