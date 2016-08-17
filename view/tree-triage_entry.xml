@@ -4,7 +4,8 @@
     <field name="upi" />
     <field name="sex" />
     <field name="age" />
-    <field name="id_display" expand="1" />
+    <!--<field name="id_display" expand="1" />-->
+    <field name="first_contact_time" expand="1" />
     <field name="priority" />
     <field name="status" />
 </tree>

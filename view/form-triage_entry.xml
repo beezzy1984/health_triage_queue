@@ -26,8 +26,8 @@
         <field name="id_type" />
         <label name="id_number" />
         <field name="id_number" />
-        <label name="priority" />
-        <field name="priority" />
+        <label name="priority" states="{'invisible': Not(Eval('can_do_details', False))}" />
+        <field name="priority" states="{'invisible': Not(Eval('can_do_details', False))}" />
         <label name="medical_alert" />
         <field name="medical_alert" />
         <label name="injury" />

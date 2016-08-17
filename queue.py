@@ -132,7 +132,7 @@ class QueueEntry(ModelSQL, ModelView):
 
     def get_patient_name(self, name):
         if self.appointment:
-            return self.appointment.patient.rec_name
+            return self.appointment.rec_name
         elif self.triage_entry:
             return self.triage_entry.name
         else:
@@ -157,8 +157,8 @@ class QueueEntry(ModelSQL, ModelView):
 
     def get_upi_mrn_id(self, name):
         if self.appointment:
-            return '%s; %s' % (self.appointment.patient.puid,
-                               self.appointment.patient.medical_record_num)
+            return '%s; %s' % (self.appointment.uuid,
+                               self.appointment.medical_record_num)
         elif self.triage_entry:
             return self.triage_entry.id_display
         return ''
@@ -258,7 +258,7 @@ class QueueEntry(ModelSQL, ModelView):
 
     def get_age(self, name):
         if self.appointment:
-            return self.appointment.patient.age
+            return self.appointment.age
         else:
             try:
                 return self.triage_entry.age

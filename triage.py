@@ -155,6 +155,8 @@ class TriageEntry(ModelSQL, ModelView):
     _history = True  # enable revision control from core
     can_do_details = fields.Function(fields.Boolean('Can do triage details'),
                                      'get_do_details_perm')
+    first_contact_time = fields.Function(fields.Text('First Contact Time'), 
+                                         'get_first_time_contact')
 
     @classmethod
     def create(cls, vlist):
@@ -291,7 +293,12 @@ class TriageEntry(ModelSQL, ModelView):
         for i in instances:
             if i.priority > MED_ALERT:
                 to_write.append(i)
+<<<<<<< Updated upstream
         cls.write(to_write, {'priority': MED_ALERT})
+=======
+                print to_write
+        cls.write(to_write, {'priority': '77'})
+>>>>>>> Stashed changes
 
     @classmethod
     def get_do_details_perm(cls, instances, name):
@@ -318,3 +325,9 @@ class TriageEntry(ModelSQL, ModelView):
     @staticmethod
     def uri_nitrite_selection():
         return [(None, '')] + URINALYSIS['nitrite']
+
+    def get_first_time_contact(self, name):
+        '''This method gets the date and time 
+           this person was first made contact
+           with by the attending staff'''
+        return str(self.create_date)[:-7]
