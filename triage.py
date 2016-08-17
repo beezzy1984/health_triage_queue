@@ -56,7 +56,8 @@ class TriageEntry(ModelSQL, ModelView):
         sort=False)
     id_number = fields.Char('ID Number',
                             states={'readonly': Bool(Eval('patient'))})
-    id_display = fields.Function(fields.Char('ID Display'), 'get_id_display')
+    id_display = fields.Function(fields.Char('ID Display'), 'get_id_display'
+                                 searcher='search_id')
     patient = fields.Many2One('gnuhealth.patient', 'Patient')
     priority = fields.Selection(TRIAGE_PRIO, 'ESI Priority', sort=False,
                                 help='Emergency Severity Index Triage Level',
@@ -224,6 +225,13 @@ class TriageEntry(ModelSQL, ModelView):
                 ('patient.name.name', operator, operand),
                 ('firstname', operator, operand),
                 ('lastname', operator, operand)]
+
+    @classmethod
+    def search_id(cls, name, clause):
+        fld, operator, operand = clause
+        return ['OR'
+                ('patient.name.upi', operator, operand),
+                ('id_number', operator, operand)]
 
     @classmethod
     def get_patient_party_field(cls, instances, name):
