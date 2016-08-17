@@ -293,12 +293,7 @@ class TriageEntry(ModelSQL, ModelView):
         for i in instances:
             if i.priority > MED_ALERT:
                 to_write.append(i)
-<<<<<<< Updated upstream
         cls.write(to_write, {'priority': MED_ALERT})
-=======
-                print to_write
-        cls.write(to_write, {'priority': '77'})
->>>>>>> Stashed changes
 
     @classmethod
     def get_do_details_perm(cls, instances, name):
