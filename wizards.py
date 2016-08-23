@@ -110,6 +110,11 @@ class QueueDismissWizard(OneQItemWizard):
         return next_state
 
 
+def now_treshold():
+    delta = timedelta(0, 60 * 60 * 3)  # 3 hours
+    return datetime.now() + delta
+
+
 class AppointmentSetup(ModelView):
     'Setup Appointment'
     __name__ = 'gnuhealth.queue_entry.appointment_setup'
@@ -139,6 +144,9 @@ class AppointmentSetup(ModelView):
         ], 'Appointment Urgency', sort=False)  #,
         # states={'invisible': ~Eval('make_new', False),
         #         'required': Eval('make_new', False)})
+    appointment_arrived = fields.Boolean(
+        'Mark as Arrived/Waiting',
+        help='Check to mark the assigned appointment as Arrived/Waiting')
 
     @fields.depends('appointment')
     def on_change_appointment(self):
@@ -146,6 +154,13 @@ class AppointmentSetup(ModelView):
             return {'appointment_time': self.appointment.appointment_date,
                     'urgency': self.appointment.urgency}
         return {}
+
+    @fields.depends('appointment_time')
+    def on_change_appointment_time(self):
+        if self.appointment_time and self.appointment_time < now_treshold():
+            return {'appointment_arrived': True}
+        return {'appointment_arrived': False}
+
 
 
 class QueueAppointmentWizard(OneQItemWizard):
@@ -210,15 +225,17 @@ class QueueAppointmentWizard(OneQItemWizard):
             appointment = starter.appointment
             appt_model.write([appointment], appt_data)
 
-        # attach appointment to queue entry
-        queue_model.write([qentry], {'appointment': appointment})
         # attach patient to triage entry if not previously attached:
         triage = qentry.triage_entry
-        if not starter.has_patient and triage:
-            triage.patient = starter.patient
+        if triage:
+            if not starter.has_patient:
+                triage.patient = starter.patient
             triage.status = 'done'
             triage.save()
-        # set appointment to arrived
-        appt_model.write([appointment], {'state': 'arrived'})
+        if starter.appointment_arrived:
+            # attach appointment to queue entry
+            queue_model.write([qentry], {'appointment': appointment})
+            # set appointment to arrived
+            appt_model.write([appointment], {'state': 'arrived'})
         return 'end'
 
