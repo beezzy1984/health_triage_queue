@@ -9,6 +9,7 @@ from trytond.modules.health_jamaica.tryton_utils import get_model_field_perm
 
 TRIAGE_STATUS = [
     ('pending', 'Pending'),
+    ('triage', 'Triage'),
     ('tobeseen', 'To be seen'),
     ('admit', 'Admit to Ward'),
     ('resched', 'Reschedule'),
@@ -56,7 +57,7 @@ class TriageEntry(ModelSQL, ModelView):
         sort=False)
     id_number = fields.Char('ID Number',
                             states={'readonly': Bool(Eval('patient'))})
-    id_display = fields.Function(fields.Char('ID Display'), 'get_id_display'
+    id_display = fields.Function(fields.Char('ID Display'), 'get_id_display',
                                  searcher='search_id')
     patient = fields.Many2One('gnuhealth.patient', 'Patient')
     priority = fields.Selection(TRIAGE_PRIO, 'ESI Priority', sort=False,

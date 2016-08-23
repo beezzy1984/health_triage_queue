@@ -8,14 +8,16 @@ from .common import APM, SEX_OPTIONS, TRIAGE_MAX_PRIO
 
 QUEUE_ENTRY_STATES = [
     ('0', ''),
-    ('1', 'Triage'),
-    ('2', 'Registration'),
-    ('3', 'Pre-Evaluation/Nurse'),
-    ('4', 'Evaluation'),
+    ('10', 'Pre-Triage'),
+    ('12', 'Triage'),  #1
+    ('20', 'Registration'),  #2
+    ('30', 'Pre-Evaluation/Nurse'),  #3
+    ('40', 'Evaluation'),  #4
     ('99', 'Done')]
 
 APPT_DONE_STATES = ['done', 'user_cancelled', 'center_cancelled', 'no_show']
-
+TRIAGE_DONE_STATES = ['done']
+TRIAGE_REG_STATES = ['tobeseen', 'resched', 'refer']
 
 class QueueEntry(ModelSQL, ModelView):
     'Queue Entry'
@@ -93,7 +95,7 @@ class QueueEntry(ModelSQL, ModelView):
                                      Equal('99', Eval('entry_state', '0')))},
             btn_dismiss={'readonly': Not(Eval('busy', False))},
             btn_setup_appointment={
-                'invisible': Not(Equal('2', Eval('entry_state', '0')))
+                'invisible': Not(Equal('20', Eval('entry_state', '0')))
             })
         cls._sql_constraints += [
             ('triage_uniq', 'UNIQUE(triage_entry)',
@@ -132,7 +134,7 @@ class QueueEntry(ModelSQL, ModelView):
 
     def get_patient_name(self, name):
         if self.appointment:
-            return self.appointment.rec_name
+            return self.appointment.patient.name.name
         elif self.triage_entry:
             return self.triage_entry.name
         else:
@@ -157,7 +159,7 @@ class QueueEntry(ModelSQL, ModelView):
 
     def get_upi_mrn_id(self, name):
         if self.appointment:
-            return '%s; %s' % (self.appointment.uuid,
+            return '%s / %s' % (self.appointment.upi,
                                self.appointment.medical_record_num)
         elif self.triage_entry:
             return self.triage_entry.id_display
@@ -200,16 +202,19 @@ class QueueEntry(ModelSQL, ModelView):
     def get_qentry_state(self, name):
         if self.appointment:
             if self.appointment.state == 'arrived':
-                return '3'
+                return '30'
             elif self.appointment.state == 'processing':
-                return '4'
-            elif self.appointment.state in ['done', 'user_cancelled',
-                                            'center_cancelled', 'no_show']:
+                return '40'
+            elif self.appointment.state in APPT_DONE_STATES:
                 return '99'
-        elif self.triage_entry and self.triage_entry.status in [
-                'tobeseen', 'resched', 'refer']:
-            return '2'
-        return '1'
+        elif self.triage_entry:
+            if self.triage_entry.status in TRIAGE_REG_STATES:
+                return '20'
+            elif self.triage_entry.status == 'triage':
+                return '12'
+            elif self.triage_entry.status in TRIAGE_DONE_STATES:
+                return '99'
+        return '10'
 
     # search_qentry_state: domain that searches queueEntries based
     # the specified state entered.
@@ -219,28 +224,32 @@ class QueueEntry(ModelSQL, ModelView):
         if operator == '=':
             # the easy one and maybe the only one we'll need since
             # entry_state is a selection field
-            if operand == '1':
+            if operand == '10':
                 return ['OR', ('triage_entry.status', '=', 'pending'),
                         ('appointment.state', '=', 'confirmed')]
-            elif operand == '2':
-                return [('triage_entry.status', 'in',
-                         ['tobeseen', 'resched', 'refer'])]
-            elif operand == '3':
+            elif operand == '12':
+                return [('triage_entry.status', '=', 'triage')]
+            elif operand == '20':
+                return [('triage_entry.status', 'in', TRIAGE_REG_STATES)]
+            elif operand == '30':
                 return [('appointment.state', '=', 'arrived')]
-            elif operand == '4':
+            elif operand == '40':
                 return [('appointment.state', '=', 'processing')]
             else:
-                return [('appointment.state', 'in', APPT_DONE_STATES)]
+                return ['OR', ('appointment.state', 'in', APPT_DONE_STATES),
+                        ['AND', ('appointment', '=', None),
+                         ('triage_entry.status', 'in', TRIAGE_DONE_STATES)]]
         elif operator == '!=':
             if operand == '99':
                 # i.e. those that are not done
-                return ['OR', ('appointment', '=', None),
-                        ('appointment.state', 'not in', APPT_DONE_STATES)]
-            if operand == '1':
-                return ['OR',
-                        ('triage_entry.status', 'in', ['tobeseen', 'resched',
-                                                       'refer']),
-                        ('appointment.state', 'in', ['arrived', 'processing'])]
+                return ['OR', ('appointment.state', 'not in', APPT_DONE_STATES),
+                        ['AND', ('appointment', '=', None),
+                         ('triage_entry.status', 'not in', TRIAGE_DONE_STATES)]]
+            if operand == '10':
+                return [
+                    'OR',
+                    ('triage_entry.status', 'in', ['triage'] + TRIAGE_REG_STATES),
+                    ('appointment.state', 'in', ['arrived', 'processing'])]
 
     def get_sex(self, name):
         if self.appointment and self.appointment.patient:
@@ -294,7 +303,7 @@ class QueueEntry(ModelSQL, ModelView):
             # details.append('')
         # else:
         if self.triage_entry:
-            details.append('First contact time: %s,\n    status: %s' % (
+            details.append('Triage, first contact: %s,\n    status: %s' % (
                            localtime(
                                self.triage_entry.create_date).strftime('%F %T'),
                            self.triage_entry.status_display))
