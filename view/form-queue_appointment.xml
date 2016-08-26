@@ -7,6 +7,9 @@
     <group id="grp_appt0" string="Appointment" colspan="4" col="6">
         <label id="make_new_cust" string="Create new appointment?" />
         <field name="make_new" />
+        <label name="appointment_arrived" />
+        <field name="appointment_arrived" />
+        <newline />
         <label name="appointment" />
         <field name="appointment" colspan="3" />
         <newline />

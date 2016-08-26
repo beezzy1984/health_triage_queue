@@ -10,6 +10,7 @@ from trytond.modules.health_jamaica.tryton_utils import localtime
 
 TRIAGE_STATUS = [
     ('pending', 'Pending'),
+    ('triage', 'Triage'),
     ('tobeseen', 'To be seen'),
     ('admit', 'Admit to Ward'),
     ('resched', 'Reschedule'),
