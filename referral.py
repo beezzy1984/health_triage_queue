@@ -25,7 +25,7 @@ RO_THERE = {'readonly': ~Eval('is_local', True)}
 class PatientReferral(ModelSQL, ModelView):
     'Referral'
     __name__ = 'gnuhealth.patient.referral'
-    name = fields.Many2One('gnuhealth.patient', 'Client', required=True,
+    name = fields.Many2One('gnuhealth.patient', 'Patient', required=True,
                            states=RO_THERE)
     sex = fields.Function(fields.Selection(SEX_OPTIONS, 'Sex'),
                           'get_patient_data',
