@@ -14,6 +14,7 @@ TRIAGE_STATUS = [
     ('tobeseen', 'To be seen'),
     ('admit', 'Admit to Ward'),
     ('resched', 'Reschedule'),
+    ('referin', 'Refer to another Department'),
     ('refer', 'Refer to Other Facility'),
     ('done', 'Done')
 ]
@@ -111,6 +112,8 @@ class TriageEntry(ModelSQL, ModelView):
         help='mmol/l. Reading from glucose meter', states=SIGNED_STATES,
         domain=['OR', ('glucose', '=', None), ['AND', ('glucose', '>', 0),
                                                ('glucose', '<', 55.1)]])
+    height = fields.Numeric('Height (cm)', digits=(4, 0), states=SIGNED_STATES)
+    weight = fields.Numeric('Weight (kg)', digits=(3, 0), states=SIGNED_STATES)
     uri_ph = fields.Numeric('pH', digits=(1, 1), states=SIGNED_STATES)
     uri_specific_gravity = fields.Numeric('Specific Gravity',
                                           digits=(1, 3), states=SIGNED_STATES)
