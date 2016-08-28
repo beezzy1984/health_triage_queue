@@ -7,7 +7,7 @@
     <field name="sex" />
     <field name="primary_complaint" expand="1" />
     <field name="entry_state" />
-    <field name="last_call" />
+    <field name="timehere" />
     <field name="last_toucher" />
     <field name="specialty" />
     <field name="visit_reason" />

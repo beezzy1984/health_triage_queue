@@ -6,6 +6,7 @@ from trytond.pyson import Eval, Not, Equal, Or, Bool, In, Len
 from .common import (ID_TYPES, SEX_OPTIONS, TRIAGE_MAX_PRIO, TRIAGE_PRIO,
                      MENARCH)
 from trytond.modules.health_jamaica.tryton_utils import get_model_field_perm
+from trytond.modules.health_jamaica.tryton_utils import localtime
 
 TRIAGE_STATUS = [
     ('pending', 'Pending'),
@@ -337,4 +338,4 @@ class TriageEntry(ModelSQL, ModelView):
         '''This method gets the date and time 
            this person was first made contact
            with by the attending staff'''
-        return str(self.create_date)[:-7]
+        return localtime(self.create_date).strftime('%F %T')
