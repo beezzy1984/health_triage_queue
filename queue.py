@@ -3,7 +3,7 @@ from datetime import datetime
 from trytond.pool import Pool
 from trytond.model import ModelView, ModelSQL, fields
 from trytond.pyson import Eval, Not, Equal, Or, Greater, In, Len, And
-from trytond.modules.health_jamaica.tryton_utils import localtime
+from trytond.modules.health_jamaica.tryton_utils import localtime, get_elapsed_time, get_timezone
 from .common import APM, SEX_OPTIONS, TRIAGE_MAX_PRIO
 
 QUEUE_ENTRY_STATES = [
@@ -67,6 +67,7 @@ class QueueEntry(ModelSQL, ModelView):
     specialty = fields.Function(fields.Many2One('gnuhealth.specialty',
                                                 'Specialty'),
                                 'get_specialty', searcher='search_specialty')
+    timehere = fields.Function(fields.Char('Time Here'), 'get_time_here')
     visit_reason = fields.Function(fields.Many2One('gnuhealth.pathology',
                                                    'Reason for Visit'),
                                    getter='get_visit_reason')
@@ -134,7 +135,8 @@ class QueueEntry(ModelSQL, ModelView):
 
     def get_patient_name(self, name):
         if self.appointment:
-            return self.appointment.patient.name.name
+            print dir(self.appointment)
+            return self.appointment.name
         elif self.triage_entry:
             return self.triage_entry.name
         else:
@@ -146,6 +148,15 @@ class QueueEntry(ModelSQL, ModelView):
         elif name == 'last_toucher':
             return self.write_uid.name if self.write_uid else None
         return ''
+
+    def get_time_here(self, name):
+        if self.appointment:
+            return get_elapsed_time(self.appointment.write_date,
+                                    datetime.now())
+        elif self.triage_entry:
+            return get_elapsed_time(self.triage_entry.create_date,
+                                    datetime.now())
+        return '[No time]'
 
     @classmethod
     def search_patient_name(cls, name, clause):
@@ -430,3 +441,4 @@ class QueueEntryNote(ModelView, ModelSQL):
         else:
             conv = lambda x: (x.id, None)
         return dict(map(conv, instances))
+
