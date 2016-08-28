@@ -304,7 +304,7 @@ class QueueEntry(ModelSQL, ModelView):
             a = self.appointment
             details.extend(
                 [u' '.join(x) for x in [
-                    (u'Appointment: ', 
+                    (u'Appointment: ',
                      localtime(a.appointment_date).strftime('%F %T')),
                     (u'    Specialty: ', a.speciality.name),
                     (u'    Status: ', a.state)]])
