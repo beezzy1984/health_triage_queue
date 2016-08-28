@@ -26,6 +26,11 @@
             <field name="name">health-triage</field>
             <field name="path">icons/triage.svg</field>
         </record>
+        <!-- Referral Icon -->
+        <record model="ir.ui.icon" id="gnuhealth_icon_referral">
+            <field name="name">health-referral</field>
+            <field name="path">icons/referral.svg</field>
+        </record>
 
         <record model="ir.ui.icon" id="gnuhealth_icon_triage-green">
             <field name="name">health-triage-green</field>
@@ -214,8 +219,36 @@
             <field name="view" ref="health_view_form_referral" />
             <field name="act_window" ref="health_actwin_referral" />
         </record>
+        <record model="ir.action.act_window.domain" id="health_actwindom-referral-outgoing">
+            <field name="name">Outgoing</field>
+            <field name="domain">[('is_local', '=', True)]</field>
+            <field name="sequence" eval="10" />
+            <field name="act_window" ref="health_actwin_referral" />
+        </record>
+        <record model="ir.action.act_window.domain" id="health_actwindom-referral-incoming">
+            <field name="name">Incoming</field>
+            <field name="domain">[('is_target', '=', True)]</field>
+            <field name="sequence" eval="20" />
+            <field name="act_window" ref="health_actwin_referral" />
+        </record>
+        <record model="ir.action.act_window.domain" id="health_actwindom-referral-others">
+            <field name="name">Others</field>
+            <field name="domain">[('is_target', '=', False), ('is_local', '=', False)]</field>
+            <field name="sequence" eval="60" />
+            <field name="act_window" ref="health_actwin_referral" />
+        </record>
         <menuitem id="health_menu_patient_referrals"
-            action="health_actwin_referral"
-            parent="health.gnuhealth_menu" sequence="9" />
+            action="health_actwin_referral" icon="health-referral"
+            parent="health.gnuhealth_menu" sequence="22" />
     </data>
+    <!-- Referral Window that opens at the form -->
+    <record model="ir.action.act_window" id="health_actwin_referral_formfirst">
+            <field name="name">Referral</field>
+            <field name="res_model">gnuhealth.patient.referral</field>
+        </record>
+        <record model="ir.action.act_window.view" id="health_actview_referral_form_first">
+            <field name="sequence" eval="10" />
+            <field name="view" ref="health_view_form_referral" />
+            <field name="act_window" ref="health_actwin_referral_formfirst" />
+        </record>
 </tryton>
