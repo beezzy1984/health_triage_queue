@@ -41,6 +41,21 @@ class OneQItemWizard(Wizard):
         self._touch_busy_flag(False)
 
 
+class OneTriageWizard(Wizard):
+
+    def __init__(self, sessionid):
+        super(OneTriageWizard, self).__init__(sessionid)
+        tact = Transaction()
+        active_id = tact.context.get('active_id')
+        triage_model = Pool().get('gnuhealth.triage.entry')
+        try:
+            entry = triage_model.browse([active_id])[0]
+        except IndexError:
+            self.raise_user_error('no_record_selected')
+        self._xdata = {'active_id': active_id, 'obj': entry,
+                       'model': triage_model}
+
+
 class QueueInspectWizard(OneQItemWizard):
     'Queue Item Peek/Inspect Wizard'
     __name__ = 'gnuhealth.queue_entry.inspect_wizard'
@@ -162,11 +177,10 @@ class AppointmentSetup(ModelView):
         return {'appointment_arrived': False}
 
 
-
 class QueueAppointmentWizard(OneQItemWizard):
     '''Create Appointment
-    This wizard creates an appointment in the "Arrive/Waiting" state
-    from a triage entry in the "registration" state.
+    This wizard creates an appointment from a triage entry in the
+    "registration" state.
     '''
     __name__ = 'gnuhealth.queue_entry.appointment_setup_wizard'
     start = StateTransition()
