@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form string="Triage Entry" col="12">
     <group col="10" colspan="12" id="triage_header">
-        <label name="patient" />
-        <field name="patient" colspan="2"/>
+        <label name="patient" states="{'readonly': Not(Eval('can_do_details', False))}" />
+        <field name="patient" colspan="2" states="{'readonly': Not(Eval('can_do_details', False))}" />
         <label name="upi" />
         <field name="upi" />
         <label name="status" />
