@@ -61,7 +61,8 @@ class TriageEntry(ModelSQL, ModelView):
                             states={'readonly': Bool(Eval('patient'))})
     id_display = fields.Function(fields.Char('ID Display'), 'get_id_display',
                                  searcher='search_id')
-    patient = fields.Many2One('gnuhealth.patient', 'Patient')
+    patient = fields.Many2One('gnuhealth.patient', 'Patient',
+                              states={'readonly': ~Eval('can_do_details', False)})
     priority = fields.Selection(TRIAGE_PRIO, 'ESI Priority', sort=False,
                                 help='Emergency Severity Index Triage Level',
                                 states={'invisible': ~(Eval('id', 0) > 0)})
