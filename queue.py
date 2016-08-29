@@ -42,7 +42,7 @@ class QueueEntry(ModelSQL, ModelView):
     encounter_component_count = fields.Function(
         fields.Integer('Component Count'), 'get_encounter_component_set')
     entry_state = fields.Function(fields.Selection(QUEUE_ENTRY_STATES,
-                                  'State'), 'get_qentry_state',
+                                                   'State'), 'get_qentry_state',
                                   searcher='search_qentry_state')
     name = fields.Function(fields.Char('Name'), 'get_patient_name',
                            searcher='search_patient_name')
