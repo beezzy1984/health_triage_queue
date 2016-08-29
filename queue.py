@@ -303,7 +303,7 @@ class QueueEntry(ModelSQL, ModelView):
             a = self.appointment
             details.extend(
                 [u' '.join(x) for x in [
-                    (u'Appointment: ', 
+                    (u'Appointment: ',
                      localtime(a.appointment_date).strftime('%F %T')),
                     (u'    Specialty: ', a.speciality.name),
                     (u'    Status: ', a.state)]])
@@ -435,8 +435,8 @@ class QueueEntryNote(ModelView, ModelSQL):
         elif name == 'byline':
             conv = lambda x: (x.id, u'%s at %s' % (
                               x.create_uid.name,
-                              x.create_date.strftime('%H:%M on %Y-%m-%d')
-                              ))
+                              localtime(x.create_date
+                                        ).strftime('%H:%M on %Y-%m-%d')))
         else:
             conv = lambda x: (x.id, None)
         return dict(map(conv, instances))

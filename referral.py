@@ -59,11 +59,13 @@ class PatientReferral(ModelSQL, ModelView):
     from_encounter = fields.Many2One('gnuhealth.encounter', 'Encounter',
                                      states=RO_THERE)
     to_appointment = fields.Many2One('gnuhealth.appointment', 'Appointment',
-                                    domain=[('institution', '=',
-                                             Eval('to_institution'))],
-                                    states=RO_HERE)
+                                     domain=[('institution', '=',
+                                              Eval('to_institution'))],
+                                     states=RO_HERE)
     is_local = fields.Function(fields.Boolean('Originated here'),
-                               'get_is_local')
+                               'get_is_local', searcher='search_target_local')
+    is_target = fields.Function(fields.Boolean('Referred here'),
+                                'get_is_target', searcher='search_target_local')
 
     def get_patient_data(self, name):
         return getattr(self.name, name)
@@ -87,7 +89,7 @@ class PatientReferral(ModelSQL, ModelView):
         HI = Pool().get('gnuhealth.institution')
         hi = HI.get_institution()
         return hi
-    
+
     @staticmethod
     def default_is_local():
         return True
@@ -100,3 +102,34 @@ class PatientReferral(ModelSQL, ModelView):
         local_list = [(i.id, int(i.from_institution) == hi)
                       for i in instances]
         return dict(local_list)
+
+    @classmethod
+    def get_target_here(cls, instances, name):
+        HI = Pool().get('gnuhealth.institution')
+        hi = HI.get_institution()
+        target_list = [(i.id, int(i.to_institution) == hi)
+                       for i in instances]
+        return dict(target_list)
+
+    @classmethod
+    def search_target_local(cls, name, clause):
+        fld, operator, operand = clause
+        HI = Pool().get('gnuhealth.institution')
+        hi = HI.get_institution()
+        field_name = {'is_local': 'from_institution',
+                      'is_target': 'to_institution'}[name]
+        find_made_here = False
+        if operand is True:
+            if operator in ('=', 'in', 'is', '<=', '>=', 'like', 'ilike'):
+                find_made_here = True
+            else:
+                find_made_here = False
+        else:
+            if operator in ('!=', 'not in', 'not like'):
+                find_made_here = True
+            else:
+                find_made_here = False
+        if find_made_here:
+            return [(field_name, '=', hi)]
+        else:
+            return [(field_name, '!=', hi)]
