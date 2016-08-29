@@ -244,7 +244,7 @@ class QueueAppointmentWizard(OneQItemWizard):
         if triage:
             if not starter.has_patient:
                 triage.patient = starter.patient
-            triage.status = 'done'
+            triage.done = True
             triage.save()
         if starter.appointment_arrived:
             # attach appointment to queue entry
