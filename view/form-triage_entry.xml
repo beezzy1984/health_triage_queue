@@ -87,6 +87,10 @@
         <field name="lmp" />
         <label name="pregnant"/>
         <field name="pregnant"/>
+        <label name="height" />
+        <field name="height" />
+        <label name="weight" />
+        <field name="weight" />
         <field name="childbearing_age" invisible="1" />
     </group>
     <group colspan="12" col="6" string="Urinalysis" id="group_nursing_urinalysis" states="{'invisible': Not(Eval('can_do_details', False))}">

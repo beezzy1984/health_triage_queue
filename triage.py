@@ -15,8 +15,7 @@ TRIAGE_STATUS = [
     ('admit', 'Admit to Ward'),
     ('resched', 'Reschedule'),
     ('referin', 'Refer to another Department'),
-    ('refer', 'Refer to Other Facility'),
-    ('done', 'Done')
+    ('refer', 'Refer to Other Facility')
 ]
 TRIAGE_STATUS_LOOKUP = dict(TRIAGE_STATUS)
 MED_ALERT = TRIAGE_PRIO[1][0]
@@ -112,8 +111,8 @@ class TriageEntry(ModelSQL, ModelView):
         help='mmol/l. Reading from glucose meter', states=SIGNED_STATES,
         domain=['OR', ('glucose', '=', None), ['AND', ('glucose', '>', 0),
                                                ('glucose', '<', 55.1)]])
-    height = fields.Numeric('Height (cm)', digits=(4, 0), states=SIGNED_STATES)
-    weight = fields.Numeric('Weight (kg)', digits=(3, 0), states=SIGNED_STATES)
+    height = fields.Numeric('Height (cm)', digits=(4, 1), states=SIGNED_STATES)
+    weight = fields.Numeric('Weight (kg)', digits=(3, 2), states=SIGNED_STATES)
     uri_ph = fields.Numeric('pH', digits=(1, 1), states=SIGNED_STATES)
     uri_specific_gravity = fields.Numeric('Specific Gravity',
                                           digits=(1, 3), states=SIGNED_STATES)
@@ -163,6 +162,11 @@ class TriageEntry(ModelSQL, ModelView):
                                      'get_do_details_perm')
     first_contact_time = fields.Function(fields.Text('First Contact Time'), 
                                          'get_first_time_contact')
+    done = fields.Boolean('Done')
+    end_time = fields.DateTime('End Time', help='Date and time triage ended',
+                               states={'readonly': True})
+    # signed_by = fields.Many2One('gnuhealth.health_professional', 'Signed By')
+    # sign_time = fields.DateTime('Signed on')
 
     @classmethod
     def create(cls, vlist):
@@ -204,6 +208,8 @@ class TriageEntry(ModelSQL, ModelView):
             arglist = iter(args)
             for r, v in zip(arglist, arglist):
                 r, v = cls.make_priority_updates(r, v)
+                if v.get('done') is True:
+                    v.update(end_time = datetime.now())
                 newargs.extend([r, v])
         return super(TriageEntry, cls).write(records, values, *newargs)
 
@@ -278,7 +284,7 @@ class TriageEntry(ModelSQL, ModelView):
             elif age[:-1].isdigit():
                 age = int(age[:-1])
             else:
-                age = 10
+                age = 7  # hack to make a default false for BHC
             if age < MENARCH[0] or age > MENARCH[1]:
                 return False
         return True
