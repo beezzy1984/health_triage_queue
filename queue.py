@@ -135,7 +135,7 @@ class QueueEntry(ModelSQL, ModelView):
 
     def get_patient_name(self, name):
         if self.appointment:
-            return self.appointment.name
+            return self.appointment.patient.name.name
         elif self.triage_entry:
             return self.triage_entry.name
         else:
