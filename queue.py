@@ -96,7 +96,8 @@ class QueueEntry(ModelSQL, ModelView):
                                      Equal('99', Eval('entry_state', '0')))},
             btn_dismiss={'readonly': Not(Eval('busy', False))},
             btn_setup_appointment={
-                'invisible': ~In(Eval('triage.status', 'x'), ['tobeseen'])
+                'invisible': ~In(Eval('triage.status', 'x'),
+                                 ['tobeseen', 'resched'])
             })
         cls._sql_constraints += [
             ('triage_uniq', 'UNIQUE(triage_entry)',
@@ -148,14 +149,50 @@ class QueueEntry(ModelSQL, ModelView):
             return self.write_uid.name if self.write_uid else None
         return ''
 
-    def get_time_here(self, name):
-        if self.appointment:
-            return get_elapsed_time(self.appointment.write_date,
-                                    datetime.now())
-        elif self.triage_entry:
-            return get_elapsed_time(self.triage_entry.create_date,
-                                    datetime.now())
-        return '[No time]'
+    @classmethod
+    def get_time_here(cls, instances, name):
+        def iget_start_end(i, now=None):
+            triage = i.triage_entry
+            appt = i.appointment
+            # Work out start time
+            if triage:
+                start = i.triage_entry.create_date
+            elif appt:
+                state_changes = [x for x in appt.state_changes
+                                 if x.target_state == 'arrived']
+                if state_changes:
+                    start = state_changes[0].create_date
+                else:
+                    start = appt.create_date
+            else:
+                start = i.create_date
+
+            # Work out End Time
+            if appt:
+                if appt.state in APPT_DONE_STATES:
+                    state_changes = [x for x in appt.state_changes
+                                     if x.target_state in APPT_DONE_STATES]
+                    if state_changes:
+                        end = state_changes[-1].create_date
+                    else:
+                        end = appt.write_date
+                else:
+                    end = now
+            elif triage:
+                if triage.done:
+                    end = triage.end_time
+                else:
+                    end = now
+            elif i.entry_state == '99':
+                end = i.write_date
+            else:
+                end = now
+            return (start, end)
+        Now = datetime.now()
+        def dmapper(i):
+            return (int(i), get_elapsed_time(*iget_start_end(i, Now)))
+
+        return dict(map(dmapper, instances))
 
     @classmethod
     def search_patient_name(cls, name, clause):
@@ -248,13 +285,13 @@ class QueueEntry(ModelSQL, ModelView):
             else:
                 return ['OR', ('appointment.state', 'in', APPT_DONE_STATES),
                         ['AND', ('appointment', '=', None),
-                         ('triage_entry.status', 'in', TRIAGE_DONE_STATES)]]
+                         ('triage_entry.done', '=', True)]]
         elif operator == '!=':
             if operand == '99':
                 # i.e. those that are not done
                 return ['OR', ('appointment.state', 'not in', APPT_DONE_STATES),
                         ['AND', ('appointment', '=', None),
-                         ('triage_entry.status', 'not in', TRIAGE_DONE_STATES)]]
+                         ('triage_entry.done', '=', False)]]
             if operand == '10':
                 return [
                     'OR',

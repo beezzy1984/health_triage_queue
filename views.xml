@@ -102,8 +102,8 @@
             <field name="act_window" ref="health_actwin_queue_entry" />
         </record>
         <record model="ir.action.act_window.domain" id="health_actwindom-queue-all">
-            <field name="name">All (Not busy)</field>
-            <field name="domain">[('busy', '=', False)]</field>
+            <field name="name">Others (Not busy nor waiting)</field>
+            <field name="domain">[('busy', '=', False), ('entry_state', '=', '99')]</field>
             <field name="sequence" eval="9999" />
             <field name="act_window" ref="health_actwin_queue_entry" />
         </record>
