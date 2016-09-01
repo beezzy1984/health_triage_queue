@@ -253,3 +253,71 @@ class QueueAppointmentWizard(OneQItemWizard):
             appt_model.write([appointment], {'state': 'arrived'})
         return 'end'
 
+
+class TriageReferWizard(OneTriageWizard):
+    'Wizard to create referral from Triage Entries'
+    __name__ = 'gnuhealth.triage.refer_wizard'
+
+    @classmethod
+    def __setup__(cls):
+        super(TriageReferWizard, cls).__setup__()
+        cls._error_messages.update({
+            'triage_no_patient':
+            'This patient has not been to registration. No patient record exists.\n'
+            'A referral cannot be created until one has been created.',
+        })
+
+    start = StateAction(
+        'health_triage_queue.health_actwin_referral_formfirst')
+
+    def _get_domain_context_pairs(self, triage_entry, triage_id):
+        institution = triage_entry.institution.id
+        if triage_entry.patient:
+            patient = triage_entry.patient.id
+        else:
+            self.raise_user_error('triage_no_patient')
+            patient = None
+        now = datetime.now()
+
+        out = [('name', patient),
+               ('referral_date', now),
+               ('from_institution', institution),
+               ('from_triage', triage_id)]
+        if triage_entry.status == 'referin':
+            out.append(('to_institution', institution))
+        return out
+
+
+    def do_start(self, action):
+        'Launch the existing referral if it exists'
+        pool = Pool()
+        referral_model = pool.get('gnuhealth.patient.referral')
+        triage_entry = self._xdata['obj']
+        triage_id = self._xdata['active_id']
+        referral = referral_model.search([('from_triage', '=', triage_id)])
+        
+        if referral:
+            referral = referral[0]
+            rd = {'active_id': referral.id}
+            action['res_id'] = rd['active_id']
+        else:
+            domain_context = self._get_domain_context_pairs(triage_entry,
+                                                            triage_id)
+            rd = {}
+            
+            action['pyson_domain'] = PYSONEncoder().encode(
+                [(x, '=', y) for x, y in domain_context])
+            action['pyson_context'] = PYSONEncoder().encode(
+                dict(domain_context))
+        return action, rd
+
+
+class TriageInternalReferWizard(TriageReferWizard):
+    'Wizard to create referral from Triage Entries'
+    __name__ = 'gnuhealth.triage.refer_wizard_internal'
+    def _get_domain_context_pairs(self, triage_entry, triage_id):
+        dcp = super(TriageInternalReferWizard, self)._get_domain_context_pairs(
+            triage_entry, triage_id)
+        hi = dict(dcp)['from_institution']
+        dcp.append(('to_institution', hi))
+        return dcp

@@ -5,7 +5,8 @@ from .triage import TriageEntry
 from .health import Appointment, PatientEncounter
 from .referral import PatientReferral
 from .wizards import (QueueInspectWizard, QueueCallWizard, QueueDismissWizard,
-                      AppointmentSetup, QueueAppointmentWizard)
+                      AppointmentSetup, QueueAppointmentWizard,
+                      TriageReferWizard)
 
 
 def register():
@@ -22,4 +23,5 @@ def register():
                   QueueCallWizard,
                   QueueDismissWizard,
                   QueueAppointmentWizard,
+                  TriageReferWizard,
                   module='health_triage_queue', type_='wizard')

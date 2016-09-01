@@ -57,6 +57,21 @@
             <field name="model">gnuhealth.patient.queue_entry,-1</field>
             <field name="action" ref="wiz_queue_appointment_setup"/>
         </record> -->
+        <record model="ir.action.wizard" id="act_triage_referral_starter">
+            <field name="name">Referral</field>
+            <field name="wiz_name">gnuhealth.triage.refer_wizard</field>
+        </record>
+<!--         <record model="ir.action.wizard" id="act_triage_ext_referral_starter">
+            <field name="name">External Referral</field>
+            <field name="wiz_name">gnuhealth.triage.refer_wizard</field>
+        </record> -->
+        <!-- Form action allows the inspect button to be called from the action 
+        button on the tree view or right-click -->
+<!--         <record model="ir.action.keyword" id="act_triage_referral">
+            <field name="keyword">form_action</field>
+            <field name="model">gnuhealth.triage.entry,-1</field>
+            <field name="action" ref="act_triage_referral_starter"/>
+        </record> -->
 
     </data>
 </tryton>
