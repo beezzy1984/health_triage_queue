@@ -40,7 +40,20 @@
         <field name="from_triage" />
         <label name="from_institution" />
         <field name="from_institution" />
+        <label name="referred_by" />
+        <field name="referred_by" />
+    </group>
+    <group id="grp_referral_footer" colspan="6" col="6">
         <label name="referer" />
         <field name="referer" />
+        <label name="referer_sign_date" />
+        <field name="referer_sign_date" />
+        <newline />
+        <label name="referee" />
+        <field name="referee" />
+        <label name="referee_sign_date" />
+        <field name="referee_sign_date" />
+        <button icon="health-certify" name="btn_sign" string="Sign"
+            help="Lock changes and force the record to be sent off." />
     </group>
 </form>

@@ -2,7 +2,7 @@
 from datetime import datetime
 from trytond.pool import Pool
 from trytond.model import ModelView, ModelSQL, fields
-from trytond.pyson import Eval, Not, Bool, Or
+from trytond.pyson import Eval, Not, Bool, Or, And
 from .common import plus_none, SEX_OPTIONS
 
 __all__ = ['PatientReferral']
@@ -39,7 +39,7 @@ class PatientReferral(ModelSQL, ModelView):
 
     referral_date = fields.DateTime('Date/Time', required=True,
                                     states=RO_THERE)
-    referer = fields.Many2One('gnuhealth.healthprofessional', 'Referred by',
+    referred_by = fields.Many2One('gnuhealth.healthprofessional', 'Referred by',
                               states=RO_THERE)
     reason = fields.Text('Reason for referral', states=RO_THERE)
     results = fields.Text('Consultant Notes/Findings', states=RO_HERE)
@@ -66,6 +66,31 @@ class PatientReferral(ModelSQL, ModelView):
                                'get_is_local', searcher='search_target_local')
     is_target = fields.Function(fields.Boolean('Referred here'),
                                 'get_is_target', searcher='search_target_local')
+    referer = fields.Many2One('gnuhealth.healthprofessional', 'Signed By',
+            states={'readonly': True,
+                    'invisible': ~Bool(Eval('referer_sign_date'))})
+    referer_sign_date = fields.DateTime('Sign date',
+            states={'readonly': True,
+                    'invisible': ~Bool(Eval('referer'))})
+    referee = fields.Many2One('gnuhealth.healthprofessional', 'Referee',
+            states={'readonly': True,
+                    'invisible': ~Bool(Eval('referee_sign_date'))})
+    referee_sign_date = fields.DateTime('Referee Sign Date',
+            states={'readonly': True,
+                    'invisible': ~Bool(Eval('referee'))})
+
+    @classmethod
+    def __setup__(cls):
+        super(PatientReferral, cls).__setup__()
+        cls._error_messages.update({
+            'health_professional_warning': 'No health professional '
+            'associated with this user'
+        })
+        cls._buttons.update({
+            'btn_sign': {'readonly': Or(~Bool(Eval('name', False)),
+                                        And(Bool(Eval('referer_sign_date')),Eval('is_local', False)),
+                                        And(Eval('is_target', False), Bool(Eval('referee_sign_date'))))}
+        })
 
     def get_patient_data(self, name):
         return getattr(self.name, name)
@@ -79,7 +104,7 @@ class PatientReferral(ModelSQL, ModelView):
         return datetime.now()
 
     @staticmethod
-    def default_referer():
+    def default_referred_by():
         HP = Pool().get('gnuhealth.healthprofessional')
         hp = HP.get_health_professional()
         return hp
@@ -133,3 +158,26 @@ class PatientReferral(ModelSQL, ModelView):
             return [(field_name, '=', hi)]
         else:
             return [(field_name, '!=', hi)]
+
+    @classmethod
+    @ModelView.button
+    def btn_sign(cls, referrals):
+        HP = Pool().get('gnuhealth.healthprofessional')
+        signing_hp = HP.get_health_professional()
+        if not signing_hp:
+            cls.raise_user_error('health_professional_warning')
+        local_sign = []
+        target_sign = []
+        now = datetime.now()
+        for referral in referrals:
+            if referral.is_local and referral.name:
+                local_sign.append(referral)
+            elif referral.is_target:
+                target_sign.append(referral)
+        if local_sign:
+            local_write = {'referer': signing_hp, 'referer_sign_date': now}
+            cls.write(local_sign, local_write)
+        if target_sign:
+            target_write = {'referee': signing_hp, 'referee_sign_date': now}
+            cls.write(target_sign, target_write)
+
