@@ -28,6 +28,7 @@
             <field name="appointment" />
             <label name="encounter" />
             <field name="encounter" />
+            <field name="triage_status" invisible="1" />
         </group>
         <group id="queue_item_buttons" col="2" colspan="1">
             <label name="priority" />

@@ -44,6 +44,8 @@ class QueueEntry(ModelSQL, ModelView):
     entry_state = fields.Function(fields.Selection(QUEUE_ENTRY_STATES,
                                                    'State'), 'get_qentry_state',
                                   searcher='search_qentry_state')
+    triage_status = fields.Function(fields.Char('triage status'), 'get_triage_status',
+                                    searcher='search_triage_status')
     name = fields.Function(fields.Char('Name'), 'get_patient_name',
                            searcher='search_patient_name')
     upi_mrn_id = fields.Function(fields.Char('UPI/MRN/ID#'), 'get_upi_mrn_id',
@@ -96,7 +98,7 @@ class QueueEntry(ModelSQL, ModelView):
                                      Equal('99', Eval('entry_state', '0')))},
             btn_dismiss={'readonly': Not(Eval('busy', False))},
             btn_setup_appointment={
-                'invisible': ~In(Eval('triage.status', 'x'),
+                'invisible': ~In(Eval('triage_status'),
                                  ['tobeseen', 'resched'])
             })
         cls._sql_constraints += [
@@ -148,6 +150,15 @@ class QueueEntry(ModelSQL, ModelView):
         elif name == 'last_toucher':
             return self.write_uid.name if self.write_uid else None
         return ''
+
+    def get_triage_status(self, name):
+        return self.triage_entry.status if self.triage_entry else ''
+
+    @classmethod
+    def search_triage_status(cls, name, clause):
+        fld, operator, operand = clause
+        return [('triage_entry', '!=', None)
+                ('triage_entry.status', operator, operand)]
 
     @classmethod
     def get_time_here(cls, instances, name):
