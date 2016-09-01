@@ -17,7 +17,7 @@ QUEUE_ENTRY_STATES = [
 
 APPT_DONE_STATES = ['done', 'user_cancelled', 'center_cancelled', 'no_show']
 TRIAGE_DONE_STATES = ['done']
-TRIAGE_REG_STATES = ['tobeseen', 'resched', 'refer']
+TRIAGE_REG_STATES = ['tobeseen', 'resched', 'refer', 'referin']
 
 class QueueEntry(ModelSQL, ModelView):
     'Queue Entry'
@@ -96,7 +96,7 @@ class QueueEntry(ModelSQL, ModelView):
                                      Equal('99', Eval('entry_state', '0')))},
             btn_dismiss={'readonly': Not(Eval('busy', False))},
             btn_setup_appointment={
-                'invisible': Not(Equal('20', Eval('entry_state', '0')))
+                'invisible': ~In(Eval('triage.status', 'x'), ['tobeseen'])
             })
         cls._sql_constraints += [
             ('triage_uniq', 'UNIQUE(triage_entry)',
@@ -218,12 +218,12 @@ class QueueEntry(ModelSQL, ModelView):
             elif self.appointment.state in APPT_DONE_STATES:
                 return '99'
         elif self.triage_entry:
-            if self.triage_entry.status in TRIAGE_REG_STATES:
+            if self.triage_entry.done:
+                return '99'
+            elif self.triage_entry.status in TRIAGE_REG_STATES:
                 return '20'
             elif self.triage_entry.status == 'triage':
                 return '12'
-            elif self.triage_entry.status in TRIAGE_DONE_STATES:
-                return '99'
         return '10'
 
     # search_qentry_state: domain that searches queueEntries based
