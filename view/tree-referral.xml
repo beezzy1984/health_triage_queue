@@ -9,6 +9,7 @@
     <field name="to_institution" />
     <field name="from_institution" />
     <field name="is_local" tree_invisible="1" />
+    <field name="is_target" tree_invisible="1" />
     <!-- <field name="reason1" /> -->
     <!-- ToDo: Need to add a field <reason1> that is line 1 of reason -->
 

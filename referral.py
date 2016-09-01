@@ -211,7 +211,6 @@ class PatientReferral(ModelSQL, ModelView):
             field_name = 'referee_sign_date'
         outlist = [(int(i), getattr(i, field_name) is not None)
                    for i in instances]
-        print ('%s\n\nfield_name= %s outlist = %s' % ('*'*70, name, repr(outlist)))
         return dict(outlist)
 
     @classmethod

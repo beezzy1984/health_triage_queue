@@ -221,19 +221,19 @@
         </record>
         <record model="ir.action.act_window.domain" id="health_actwindom-referral-outgoing">
             <field name="name">Outgoing</field>
-            <field name="domain">[('is_local', '=', True)]</field>
+            <field name="domain">[('is_local', '=', True), ('signed_target', '=', False)]</field>
             <field name="sequence" eval="10" />
             <field name="act_window" ref="health_actwin_referral" />
         </record>
         <record model="ir.action.act_window.domain" id="health_actwindom-referral-incoming">
             <field name="name">Incoming</field>
-            <field name="domain">[('is_target', '=', True)]</field>
+            <field name="domain">[('is_target', '=', True), ('signed_target', '=', False)]</field>
             <field name="sequence" eval="20" />
             <field name="act_window" ref="health_actwin_referral" />
         </record>
         <record model="ir.action.act_window.domain" id="health_actwindom-referral-others">
             <field name="name">Others</field>
-            <field name="domain">[('is_target', '=', False), ('is_local', '=', False)]</field>
+            <field name="domain">[('signed_target', '=', True)]</field>
             <field name="sequence" eval="60" />
             <field name="act_window" ref="health_actwin_referral" />
         </record>
