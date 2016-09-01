@@ -8,6 +8,9 @@
         <label name="age" />
         <field name="age" width="40" />
         <field name="is_local" invisible="1" />
+        <field name="is_target" invisible="1" />
+        <field name="signed_local" invisible="1" />
+        <field name="signed_target" invisible="1" />
     </group>
     <newline />
     <group id="grp_referral_header" colspan="6" col="8">
@@ -48,12 +51,16 @@
         <field name="referer" />
         <label name="referer_sign_date" />
         <field name="referer_sign_date" />
+        <button icon="health-certify" name="btn_sign_local" string="Sign"
+            help="Lock changes and enable the record to be sent off." 
+            xexpand="0" xalign="1.0" />
         <newline />
         <label name="referee" />
         <field name="referee" />
         <label name="referee_sign_date" />
         <field name="referee_sign_date" />
-        <button icon="health-certify" name="btn_sign" string="Sign"
-            help="Lock changes and force the record to be sent off." />
+        <button icon="health-certify" name="btn_sign_target" string="Sign"
+            help="Lock changes and enable the record to be sent off." 
+            xexpand="0" xalign="1.0" />
     </group>
 </form>
