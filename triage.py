@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 from trytond.pool import Pool
 from trytond.model import ModelView, ModelSQL, fields
 from trytond.pyson import Eval, Not, Equal, Or, Bool, In, Len
@@ -20,7 +21,8 @@ TRIAGE_STATUS = [
 TRIAGE_STATUS_LOOKUP = dict(TRIAGE_STATUS)
 MED_ALERT = TRIAGE_PRIO[1][0]
 REQD_IF_NOPATIENT = {'required': Not(Bool(Eval('patient'))),
-                     'invisible': Bool(Eval('patient'))}
+                     'invisible': Bool(Eval('patient')),
+                     'readonly': Eval('done', False)}
 
 URINALYSIS = {
     'default': [
@@ -38,10 +40,11 @@ URINALYSIS = {
         ('large+', 'large+')]
 }
 
-STATE_NO_MENSES = {'readonly': Not(Eval('childbearing_age', True)),
-                   'invisible': Not(Eval('childbearing_age', True))}
+STATE_NO_MENSES = {'readonly': Or(~Eval('childbearing_age', True),
+                                  Eval('done', False)),
+                   'invisible': ~Eval('childbearing_age', False)}
 
-SIGNED_STATES = {}
+SIGNED_STATES = {'readonly': Eval('done', False)}
 
 
 class TriageEntry(ModelSQL, ModelView):
@@ -57,25 +60,30 @@ class TriageEntry(ModelSQL, ModelView):
         'readonly': Bool(Eval('patient'))},
         sort=False)
     id_number = fields.Char('ID Number',
-                            states={'readonly': Bool(Eval('patient'))})
+            states={'readonly': Or(Bool(Eval('patient')), Eval('done', False))})
     id_display = fields.Function(fields.Char('ID Display'), 'get_id_display',
                                  searcher='search_id')
     patient = fields.Many2One('gnuhealth.patient', 'Patient',
-                              states={'readonly': ~Eval('can_do_details', False)})
+            states={'readonly': Or(~Eval('can_do_details', False),
+                                   Eval('done', False))})
     priority = fields.Selection(TRIAGE_PRIO, 'ESI Priority', sort=False,
-                                help='Emergency Severity Index Triage Level',
-                                states={'invisible': ~(Eval('id', 0) > 0)})
+            help='Emergency Severity Index Triage Level',
+            states={'invisible': ~(Eval('id', 0) > 0),
+                    'readonly': Or(~Eval('can_do_details', False),
+                                   Eval('done', False))})
     medical_alert = fields.Function(fields.Boolean('Medical Alert',
                                     states={'invisible': Eval('id', 0) > 0}),
                                     'get_medical_alert',
                                     setter='set_medical_alert')
-    injury = fields.Boolean('Injury')
-    review = fields.Boolean('Review')
-    status = fields.Selection(TRIAGE_STATUS, 'Status', sort=False)
+    injury = fields.Boolean('Injury', states=SIGNED_STATES)
+    review = fields.Boolean('Review', states=SIGNED_STATES)
+    status = fields.Selection(TRIAGE_STATUS, 'Status', sort=False,
+            states={'readonly': Or(~Eval('can_do_details', False),
+                                   Eval('done', False))})
     status_display = fields.Function(fields.Char('Status'),
                                      'get_status_display')
-    complaint = fields.Char('Primary Complaint')
-    notes = fields.Text('Notes')
+    complaint = fields.Char('Primary Complaint', states=SIGNED_STATES)
+    notes = fields.Text('Notes', states=SIGNED_STATES)
     upi = fields.Function(fields.Char('UPI'), 'get_patient_party_field')
     name = fields.Function(fields.Char('Name'), 'get_name',
                            searcher='search_name')
@@ -145,29 +153,50 @@ class TriageEntry(ModelSQL, ModelView):
         'Dehydration', sort=False,
         help='If the patient show signs of dehydration.',
         states=SIGNED_STATES)
-    symp_fever = fields.Boolean('Fever')
-    symp_respiratory = fields.Boolean('Respiratory', help="breathing problems")
-    symp_jaundice = fields.Boolean('Jaundice')
-    symp_rash = fields.Boolean('Rash')
-    symp_hemorrhagic = fields.Boolean("Hemorrhagic")
-    symp_neurological = fields.Boolean("Neurological")
-    symp_arthritis = fields.Boolean("Arthralgia/Arthritis")
-    symp_vomitting = fields.Boolean("Vomitting")
-    symp_diarrhoea = fields.Boolean("Diarrhoea")
+    symp_fever = fields.Boolean('Fever', states=SIGNED_STATES)
+    symp_respiratory = fields.Boolean('Respiratory', help="breathing problems",
+                                      states=SIGNED_STATES)
+    symp_jaundice = fields.Boolean('Jaundice', states=SIGNED_STATES)
+    symp_rash = fields.Boolean('Rash', states=SIGNED_STATES)
+    symp_hemorrhagic = fields.Boolean("Hemorrhagic", states=SIGNED_STATES)
+    symp_neurological = fields.Boolean("Neurological", states=SIGNED_STATES)
+    symp_arthritis = fields.Boolean("Arthralgia/Arthritis",
+                                    states=SIGNED_STATES)
+    symp_vomitting = fields.Boolean("Vomitting", states=SIGNED_STATES)
+    symp_diarrhoea = fields.Boolean("Diarrhoea", states=SIGNED_STATES)
     recent_travel_contact = fields.Char(
         "Countries visited/Contact with traveller",
+        states=SIGNED_STATES,
         help="Countries visited or from which there was contact with a "
              "traveller within the last six weeks")
+    institution = fields.Many2One('gnuhealth.institution', 'Institution',
+                                  states={'readonly': True})
     _history = True  # enable revision control from core
     can_do_details = fields.Function(fields.Boolean('Can do triage details'),
                                      'get_do_details_perm')
     first_contact_time = fields.Function(fields.Text('First Contact Time'), 
                                          'get_first_time_contact')
-    done = fields.Boolean('Done')
+    done = fields.Boolean('Done', states={'invisible': True})
     end_time = fields.DateTime('End Time', help='Date and time triage ended',
-                               states={'readonly': True})
-    # signed_by = fields.Many2One('gnuhealth.health_professional', 'Signed By')
+           states={'readonly': Or(~Eval('can_do_details', False),
+                                  Eval('done', False))})
+    # signed_by = fields.Many2One('gnuhealth.healthprofessional'', 'Signed By')
     # sign_time = fields.DateTime('Signed on')
+
+    @classmethod
+    def __setup__(cls):
+        super(TriageEntry, cls).__setup__()
+        cls._buttons.update({
+            'set_done': {
+                'readonly': ~Eval('can_do_details', False),
+                'invisible': Or(In(Eval('status'), ['pending', 'triage']),
+                                Eval('done', False))
+            },
+            'go_referral': {
+                'readonly': ~Eval('can_do_details', False),
+                'invisible': ~In(Eval('status'), ['refer', 'referin'])
+            }
+        })
 
     @classmethod
     def create(cls, vlist):
@@ -346,3 +375,28 @@ class TriageEntry(ModelSQL, ModelView):
            this person was first made contact
            with by the attending staff'''
         return localtime(self.create_date).strftime('%F %T')
+
+    @staticmethod
+    def default_institution():
+        HI = Pool().get('gnuhealth.institution')
+        return HI.get_institution()
+
+    @classmethod
+    @ModelView.button_action('health_triage_queue.act_triage_referral_starter')
+    def go_referral(cls, queue_entries):
+        pass
+
+    @classmethod
+    @ModelView.button
+    def set_done(cls, entries):
+        '''set done=True on the triage entry'''
+        save_data = {'done': True}
+        for entry in entries:
+            if not entry.end_time:
+                cls.raise_user_warning(
+                    'triage_end_date_warn',
+                    'End time has not been set.\nDo you want to use the'
+                    ' current date and time?')
+                save_data.update(end_time=datetime.now())
+        cls.write(entries, save_data)
+

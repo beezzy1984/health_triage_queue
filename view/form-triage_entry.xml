@@ -19,6 +19,7 @@
         <label name="age" />
         <field name="age" />
         <field name="can_do_details" invisible="1" />
+        <field name="done" invisible="1" />
     </group>
     <newline />
     <group col="16" colspan="12" id="triage_sub_header">
@@ -117,5 +118,13 @@
             <label name="uri_specific_gravity"/>
             <field name="uri_specific_gravity"/>
         </group>
+    </group>
+    <group id="group_triage_foot" colspan="12" col="6">
+        <label name="institution" />
+        <field name="institution" />
+        <label name="end_time" />
+        <field name="end_time" />
+        <button name="go_referral" help="Go to referral" string="Referra_l" icon="health-referral" />
+        <button name="set_done" help="Click to mark triage as done." string="Finis_h" icon="tryton-go-next" />
     </group>
 </form>
