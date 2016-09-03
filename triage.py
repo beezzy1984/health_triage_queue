@@ -72,9 +72,10 @@ class TriageEntry(ModelSQL, ModelView):
                     'readonly': Or(~Eval('can_do_details', False),
                                    Eval('done', False))})
     medical_alert = fields.Function(fields.Boolean('Medical Alert',
-                                    states={'invisible': Eval('id', 0) > 0}),
-                                    'get_medical_alert',
-                                    setter='set_medical_alert')
+            states={'invisible': Or(Eval('can_do_details', False),
+                                    ~In(Eval('status'), ['triage', 'pending']),
+                                    ~In(Eval('priority'), ['99', '77']))}),
+            'get_medical_alert', setter='set_medical_alert')
     injury = fields.Boolean('Injury', states=SIGNED_STATES)
     review = fields.Boolean('Review', states=SIGNED_STATES)
     status = fields.Selection(TRIAGE_STATUS, 'Status', sort=False,
@@ -83,7 +84,10 @@ class TriageEntry(ModelSQL, ModelView):
     status_display = fields.Function(fields.Char('Status'),
                                      'get_status_display')
     complaint = fields.Char('Primary Complaint', states=SIGNED_STATES)
-    notes = fields.Text('Notes', states=SIGNED_STATES)
+    notes = fields.Text('Notes (edit)', states=SIGNED_STATES)
+    note_entries = fields.One2Many('gnuhealth.triage.note', 'triage_entry',
+                                   'Note entries')
+    note_display = fields.Function(fields.Text('Notes'), 'get_note_display')
     upi = fields.Function(fields.Char('UPI'), 'get_patient_party_field')
     name = fields.Function(fields.Char('Name'), 'get_name',
                            searcher='search_name')
@@ -199,6 +203,30 @@ class TriageEntry(ModelSQL, ModelView):
         })
 
     @classmethod
+    def _swapnote(cls, vdict):
+        '''swaps out the value in the notes field for an entry that creates
+        a new gnuhealth.triage.note model instance'''
+        new_note = vdict.get('notes', '')
+        if new_note.strip():
+            new_note = new_note.strip()
+            noteobj = ('create', [{'note': new_note}])
+            vdict.setdefault('note_entries', []).append(noteobj)
+            vdict['notes'] = u''  # toDo: remove this for next release and use vdict.pop
+        return vdict
+
+    @classmethod
+    def make_priority_updates(cls, triage_entries, values_to_write):
+        if ('priority' in values_to_write and
+                'queue_entry' not in values_to_write):
+            prio = int(values_to_write['priority'])
+            queue_model = Pool().get('gnuhealth.patient.queue_entry')
+            qentries = queue_model.search(
+                [('triage_entry', 'in', triage_entries)])
+            values_to_write['queue_entry'] = [('write', map(int, qentries),
+                                               {'priority': prio})]
+        return triage_entries, cls._swapnote(values_to_write)
+
+    @classmethod
     def create(cls, vlist):
         # add me to the queue when created
         for vdict in vlist:
@@ -214,19 +242,8 @@ class TriageEntry(ModelSQL, ModelView):
                 vdict['queue_entry'] = [('create',
                                          [{'busy': False,
                                            'priority': vqprio}])]
+                vdict = cls._swapnote(vdict)  # in case there's a note now
         return super(TriageEntry, cls).create(vlist)
-
-    @classmethod
-    def make_priority_updates(cls, triage_entries, values_to_write):
-        if ('priority' in values_to_write and
-                'queue_entry' not in values_to_write):
-            prio = int(values_to_write['priority'])
-            queue_model = Pool().get('gnuhealth.patient.queue_entry')
-            qentries = queue_model.search(
-                [('triage_entry', 'in', triage_entries)])
-            values_to_write['queue_entry'] = [('write', map(int, qentries),
-                                               {'priority': prio})]
-        return triage_entries, values_to_write
 
     @classmethod
     def write(cls, records, values, *args):
@@ -238,8 +255,6 @@ class TriageEntry(ModelSQL, ModelView):
             arglist = iter(args)
             for r, v in zip(arglist, arglist):
                 r, v = cls.make_priority_updates(r, v)
-                if v.get('done') is True:
-                    v.update(end_time = datetime.now())
                 newargs.extend([r, v])
         return super(TriageEntry, cls).write(records, values, *newargs)
 
@@ -381,6 +396,16 @@ class TriageEntry(ModelSQL, ModelView):
         HI = Pool().get('gnuhealth.institution')
         return HI.get_institution()
 
+    def get_note_display(self, name):
+        notes = []
+        if self.note_entries:
+            return u'\n---\n'.join(
+                map(lambda x: u' :\n'.join([x.byline, x.note]),
+                    self.note_entries))
+        else:
+            return ''
+
+
     @classmethod
     @ModelView.button_action('health_triage_queue.act_triage_referral_starter')
     def go_referral(cls, queue_entries):
@@ -399,4 +424,37 @@ class TriageEntry(ModelSQL, ModelView):
                     ' current date and time?')
                 save_data.update(end_time=datetime.now())
         cls.write(entries, save_data)
+
+
+class TriageNote(ModelView, ModelSQL):
+    'Triage Entry Note'
+    __name__ = 'gnuhealth.triage.note'
+    triage_entry = fields.Many2One('gnuhealth.triage.entry',
+                                  'Queue Entry', required=True)
+    note = fields.Text('Note', required=True)
+    created = fields.Function(fields.DateTime('Created at'), 'get_writeinfo')
+    creator = fields.Function(fields.Char('Creator'), 'get_writeinfo')
+    byline = fields.Function(fields.Char('By Line'), 'get_writeinfo')
+
+    @classmethod
+    def __setup__(cls):
+        super(TriageNote, cls).__setup__()
+        cls._order = [('write_date', 'DESC'), ('create_date', 'DESC')]
+
+    @classmethod
+    def get_writeinfo(cls, instances, name):
+        if name == 'created':
+            conv = lambda x: (x.id,
+                              x.write_date and x.write_date or x.create_date)
+        elif name == 'creator':
+            conv = lambda x: (x.id, x.write_uid.name if x.write_uid
+                              else x.create_uid.name)
+        elif name == 'byline':
+            conv = lambda x: (x.id, u'%s, %s' % (
+                              localtime(x.create_date
+                                        ).strftime('%Y-%m-%d %H:%M'),
+                              x.create_uid.name))
+        else:
+            conv = lambda x: (x.id, None)
+        return dict(map(conv, instances))
 
