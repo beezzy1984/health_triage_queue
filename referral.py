@@ -60,7 +60,8 @@ class PatientReferral(ModelSQL, ModelView):
     from_triage = fields.Many2One('gnuhealth.triage.entry', 'Triage Entry',
                                   states=RO_THERE)
     from_encounter = fields.Many2One('gnuhealth.encounter', 'Encounter',
-                                     states=RO_THERE)
+                                     states=RO_THERE,
+                                     domain=[('patient', '=', Eval('name'))])
     to_appointment = fields.Many2One('gnuhealth.appointment', 'Appointment',
                                      domain=[('institution', '=',
                                               Eval('to_institution'))],

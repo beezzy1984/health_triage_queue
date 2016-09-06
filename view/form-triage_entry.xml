@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form string="Triage Entry" col="12">
     <group col="10" colspan="12" id="triage_header">
-        <label name="patient" states="{'readonly': Not(Eval('can_do_details', False))}" />
-        <field name="patient" colspan="2" states="{'readonly': Not(Eval('can_do_details', False))}" />
+        <label name="patient" />
+        <field name="patient" colspan="2" />
         <label name="upi" />
         <field name="upi" />
         <label name="status" />
@@ -27,8 +27,8 @@
         <field name="id_type" />
         <label name="id_number" />
         <field name="id_number" />
-        <label name="priority" states="{'invisible': Not(Eval('can_do_details', False))}" />
-        <field name="priority" states="{'invisible': Not(Eval('can_do_details', False))}" />
+        <label name="priority" />
+        <field name="priority" />
         <label name="medical_alert" />
         <field name="medical_alert" />
         <label name="injury" />
@@ -125,6 +125,6 @@
         <label name="end_time" />
         <field name="end_time" />
         <button name="go_referral" help="Go to referral" string="Referra_l" icon="health-referral" />
-        <button name="set_done" help="Click to mark triage as done." string="Finis_h" icon="tryton-go-next" />
+        <button name="set_done" help="Click to mark triage as done." string="Fi_nish" icon="tryton-go-next" />
     </group>
 </form>

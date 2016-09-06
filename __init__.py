@@ -1,6 +1,6 @@
 
 from trytond.pool import Pool
-from .queue import QueueEntry, QueueEntryNote
+from .queue import QueueEntry, QueueEntryNote, QueueCallLog
 from .triage import TriageEntry, TriageNote
 from .health import Appointment, PatientEncounter
 from .referral import PatientReferral
@@ -14,6 +14,7 @@ def register():
                   TriageNote,
                   QueueEntry,
                   QueueEntryNote,
+                  QueueCallLog,
                   Appointment,
                   PatientEncounter,
                   AppointmentSetup,

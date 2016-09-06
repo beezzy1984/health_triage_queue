@@ -17,7 +17,8 @@ QUEUE_ENTRY_STATES = [
 
 APPT_DONE_STATES = ['done', 'user_cancelled', 'center_cancelled', 'no_show']
 TRIAGE_DONE_STATES = ['done']
-TRIAGE_REG_STATES = ['tobeseen', 'resched', 'refer', 'referin']
+TRIAGE_REG_STATES = ['tobeseen', 'resched', 'referin', 'refer']
+QUEUE_ACTIONS = [('call', 'Call'), ('dismiss', 'Dismiss')]
 
 class QueueEntry(ModelSQL, ModelView):
     'Queue Entry'
@@ -123,12 +124,21 @@ class QueueEntry(ModelSQL, ModelView):
         # overload to handle the following situation:
         # if something is written in line-notes, create a QueueEntryNote
         # object with that as the note. To do that we will
-        values = cls._swapout(values)
-        if args:
-            newargs = [(x, cls._swapout(y)) for x, y in args]
-        else:
-            newargs = []
-        return super(QueueEntry, cls).write(instances, values, *newargs)
+        arglist = iter((instances, values) + args)
+        log_entries = []
+        for recs, vals in zip(arglist, arglist):
+            vals = cls._swapout(vals)
+            if 'busy' in vals:
+                # call or dismiss
+                new_busy = vals['busy']
+                for rec in recs:
+                    log_entries.append(
+                        {'queue_entry': rec.id,
+                         'entry_state': rec.entry_state,
+                         'action': 'call' if new_busy else 'dismiss'})
+        retval = super(QueueEntry, cls).write(instances, values, *args)
+        QueueCallLog.create(log_entries)
+        return retval
 
     @classmethod
     def create(cls, vlist):
@@ -190,7 +200,7 @@ class QueueEntry(ModelSQL, ModelView):
                 else:
                     end = now
             elif triage:
-                if triage.done:
+                if i.entry_state == '99':
                     end = triage.end_time
                 else:
                     end = now
@@ -211,6 +221,7 @@ class QueueEntry(ModelSQL, ModelView):
         if name == 'name':
             dom = ['OR']
             for fld in ('triage_entry.name',
+                        'triage_entry.patient.name.name',
                         'appointment.patient.name.name'):
                 dom.append((fld, operator, operand))
             return dom
@@ -266,11 +277,16 @@ class QueueEntry(ModelSQL, ModelView):
             elif self.appointment.state in APPT_DONE_STATES:
                 return '99'
         elif self.triage_entry:
+            triage_entry = self.triage_entry
             if self.triage_entry.done:
-                return '99'
-            elif self.triage_entry.status in TRIAGE_REG_STATES:
+                if (triage_entry.status in TRIAGE_REG_STATES[:2] and
+                        not triage_entry.post_appointment):
+                    return '20'
+                else:
+                    return '99'
+            elif triage_entry.status in TRIAGE_REG_STATES:
                 return '20'
-            elif self.triage_entry.status == 'triage':
+            elif triage_entry.status == 'triage':
                 return '12'
         return '10'
 
@@ -296,13 +312,16 @@ class QueueEntry(ModelSQL, ModelView):
             else:
                 return ['OR', ('appointment.state', 'in', APPT_DONE_STATES),
                         ['AND', ('appointment', '=', None),
-                         ('triage_entry.done', '=', True)]]
+                         ['OR',
+                          ['AND', ('triage_entry.done', '=', True), ('triage_entry.status', 'not in', TRIAGE_REG_STATES[:2])],
+                          ['AND', ('triage_entry.done', '=', True), ('triage_entry.post_appointment', '!=', None)]]]]
         elif operator == '!=':
             if operand == '99':
                 # i.e. those that are not done
                 return ['OR', ('appointment.state', 'not in', APPT_DONE_STATES),
                         ['AND', ('appointment', '=', None),
-                         ('triage_entry.done', '=', False)]]
+                         ['OR', ('triage_entry.done', '=', False),
+                          [('triage_entry.done', '=', True), ('triage_entry.status', 'in', TRIAGE_REG_STATES[:2]), ('triage_entry.post_appointment', '=', None)]]]]
             if operand == '10':
                 return [
                     'OR',
@@ -489,3 +508,29 @@ class QueueEntryNote(ModelView, ModelSQL):
             conv = lambda x: (x.id, None)
         return dict(map(conv, instances))
 
+
+class QueueCallLog(ModelSQL, ModelView):
+    """Queue Call Log"""
+    __name__ = 'gnuhealth.patient.queue_call_log'
+    queue_entry = fields.Many2One('gnuhealth.patient.queue_entry', 'Entry')
+    action = fields.Selection(QUEUE_ACTIONS, 'Action')
+    entry_state = fields.Selection(QUEUE_ENTRY_STATES, 'State')
+    # use the built-in create_date and create_uid to determine who
+    # called or dismissed the patient.
+    # Records in this model will, be created automatically
+    change_date = fields.Function(fields.DateTime('Date/Time'),
+                                  'get_creator_name')
+    creator = fields.Function(fields.Char('User'), 'get_creator_name')
+
+    def get_creator_name(self, name):
+        pool = Pool()
+        Party = pool.get('party.party')
+        persons = Party.search([('internal_user', '=', self.create_uid)])
+        if persons:
+            return persons[0].name
+        else:
+            return self.create_uid.name
+
+    def get_change_date(self, name):
+        # we're sending back the create date since these are readonly
+        return self.create_date

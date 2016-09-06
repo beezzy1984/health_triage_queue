@@ -184,6 +184,7 @@ class TriageEntry(ModelSQL, ModelView):
     end_time = fields.DateTime('End Time', help='Date and time triage ended',
            states={'readonly': Or(~Eval('can_do_details', False),
                                   Eval('done', False))})
+    post_appointment = fields.Many2One('gnuhealth.appointment', 'Appointment')
     # signed_by = fields.Many2One('gnuhealth.healthprofessional'', 'Signed By')
     # sign_time = fields.DateTime('Signed on')
 
