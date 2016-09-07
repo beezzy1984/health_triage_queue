@@ -16,7 +16,9 @@ TRIAGE_STATUS = [
     ('admit', 'Admit to Ward'),
     ('resched', 'Reschedule'),
     ('referin', 'Refer to another Department'),
-    ('refer', 'Refer to Other Facility')
+    ('refer', 'Refer to Other Facility'),
+    ('home', 'Treated and Sent Home'),
+    ('incomplete', 'Triage Incomplete')
 ]
 TRIAGE_STATUS_LOOKUP = dict(TRIAGE_STATUS)
 MED_ALERT = TRIAGE_PRIO[1][0]

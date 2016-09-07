@@ -16,7 +16,7 @@ QUEUE_ENTRY_STATES = [
     ('99', 'Done')]
 
 APPT_DONE_STATES = ['done', 'user_cancelled', 'center_cancelled', 'no_show']
-TRIAGE_DONE_STATES = ['done']
+TRIAGE_DONE_STATES = ['home', 'incomplete']
 TRIAGE_REG_STATES = ['tobeseen', 'resched', 'referin', 'refer']
 QUEUE_ACTIONS = [('call', 'Call'), ('dismiss', 'Dismiss')]
 
