@@ -2,7 +2,7 @@
 from datetime import datetime
 from trytond.pool import Pool
 from trytond.model import ModelView, ModelSQL, fields
-from trytond.pyson import Eval, Not, Equal, Or, Greater, In, Len, And
+from trytond.pyson import Eval, Not, Equal, Or, Greater, In, Len, And, Bool
 from trytond.modules.health_jamaica.tryton_utils import localtime, get_elapsed_time, get_timezone
 from .common import APM, SEX_OPTIONS, TRIAGE_MAX_PRIO
 
@@ -99,8 +99,8 @@ class QueueEntry(ModelSQL, ModelView):
                                      Equal('99', Eval('entry_state', '0')))},
             btn_dismiss={'readonly': Not(Eval('busy', False))},
             btn_setup_appointment={
-                'invisible': ~In(Eval('triage_status'),
-                                 ['tobeseen', 'resched'])
+                'invisible': Or(Bool(Eval('appointment')),
+                                ~Equal('20', Eval('entry_state', '0')))
             })
         cls._sql_constraints += [
             ('triage_uniq', 'UNIQUE(triage_entry)',
