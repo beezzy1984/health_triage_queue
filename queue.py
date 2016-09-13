@@ -4,6 +4,7 @@ from trytond.pool import Pool
 from trytond.model import ModelView, ModelSQL, fields
 from trytond.pyson import Eval, Not, Equal, Or, Greater, In, Len, And, Bool
 from trytond.modules.health_jamaica.tryton_utils import localtime, get_elapsed_time, get_timezone
+from trytond.transaction import Transaction
 from .common import APM, SEX_OPTIONS, TRIAGE_MAX_PRIO
 
 QUEUE_ENTRY_STATES = [
@@ -440,6 +441,26 @@ class QueueEntry(ModelSQL, ModelView):
     @classmethod
     @ModelView.button_action('health_triage_queue.act_queue_call_starter')
     def btn_call(cls, queue_entries):
+        user = Transaction().user
+        queue_model = Pool().get('gnuhealth.patient.queue_entry')
+        patients_called_by_user = queue_model.search(['AND', ('busy', '=', True),
+                                                      ('write_uid', '=', user)])
+        if  len(patients_called_by_user) >= 5:
+            patient_names = ''
+            for patient in patients_called_by_user:
+                (last_name, first_name) = patient.name.split(',')
+                patient_names += '{} {}\n'.format(first_name, last_name)
+            
+
+            cls.raise_user_error('You have exceeded the maximum\n' + 
+                                 'amount of patients that you\n can call ' +
+                                 'at any one time.\n Please dismiss some of ' + 
+                                 'the\n patients you have called and\n try again.\n\n'
+                                 + 'The patients you have called are:\n' + 
+                                 patient_names)
+
+        # print ['OR', ('triage_entry.status', '=', 'pending'),
+        #                 ('appointment.state', '=', 'confirmed')]
         # cls.write(queue_entries, {'busy': True})
         # we want to set this to True, but do we want to do it here
         # or should we do it after the thing launched has been saved or
