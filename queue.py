@@ -447,10 +447,11 @@ class QueueEntry(ModelSQL, ModelView):
                                                       ('write_uid', '=', user)])
         if  len(patients_called_by_user) >= 5:
             patient_names = ''
+            num = 1
             for patient in patients_called_by_user:
                 (last_name, first_name) = patient.name.split(',')
-                patient_names += '{} {}\n'.format(first_name, last_name)
-            
+                patient_names += '({}) {} {}\n'.format(num, first_name, last_name)
+                num += 1
 
             cls.raise_user_error('You have exceeded the maximum\n' + 
                                  'amount of patients that you\n can call ' +
@@ -459,8 +460,6 @@ class QueueEntry(ModelSQL, ModelView):
                                  + 'The patients you have called are:\n' + 
                                  patient_names)
 
-        # print ['OR', ('triage_entry.status', '=', 'pending'),
-        #                 ('appointment.state', '=', 'confirmed')]
         # cls.write(queue_entries, {'busy': True})
         # we want to set this to True, but do we want to do it here
         # or should we do it after the thing launched has been saved or
