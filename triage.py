@@ -227,6 +227,11 @@ class TriageEntry(ModelSQL, ModelView):
                 [('triage_entry', 'in', triage_entries)])
             values_to_write['queue_entry'] = [('write', map(int, qentries),
                                                {'priority': prio})]
+        # force end-time to now if none entered and the prompt ignored
+        if (values_to_write.get('done', False) and
+                not values_to_write.get('end_time', False)):
+            values_to_write['end_time'] = datetime.now()
+
         return triage_entries, cls._swapnote(values_to_write)
 
     @classmethod
@@ -422,9 +427,9 @@ class TriageEntry(ModelSQL, ModelView):
         for entry in entries:
             if not entry.end_time:
                 cls.raise_user_warning(
-                    'triage_end_date_warn',
-                    'End time has not been set.\nDo you want to use the'
-                    ' current date and time?')
+                    'triage_end_date_warn1',
+                    'End time has not been set.\nThe current Date and time '
+                    'will be used.')
                 save_data.update(end_time=datetime.now())
         cls.write(entries, save_data)
 
