@@ -20,6 +20,7 @@ APPT_DONE_STATES = ['done', 'user_cancelled', 'center_cancelled', 'no_show']
 TRIAGE_DONE_STATES = ['home', 'incomplete']
 TRIAGE_REG_STATES = ['tobeseen', 'resched', 'referin', 'refer']
 QUEUE_ACTIONS = [('call', 'Call'), ('dismiss', 'Dismiss')]
+MAX_QUEUE_CALL = 5
 
 class QueueEntry(ModelSQL, ModelView):
     'Queue Entry'
@@ -443,22 +444,21 @@ class QueueEntry(ModelSQL, ModelView):
     def btn_call(cls, queue_entries):
         user = Transaction().user
         queue_model = Pool().get('gnuhealth.patient.queue_entry')
-        patients_called_by_user = queue_model.search(['AND', ('busy', '=', True),
-                                                      ('write_uid', '=', user)])
-        if  len(patients_called_by_user) >= 5:
-            patient_names = ''
-            num = 1
-            for patient in patients_called_by_user:
+        patients_called_by_user = queue_model.search(
+                ['AND', ('busy', '=', True), ('write_uid', '=', user)])
+        if len(patients_called_by_user) >= MAX_QUEUE_CALL:
+            patient_names = []
+            for num, patient in enumerate(patients_called_by_user):
                 (last_name, first_name) = patient.name.split(',')
-                patient_names += '({}) {} {}\n'.format(num, first_name, last_name)
-                num += 1
-
-            cls.raise_user_error('You have exceeded the maximum\n' + 
-                                 'amount of patients that you\n can call ' +
-                                 'at any one time.\n Please dismiss some of ' + 
-                                 'the\n patients you have called and\n try again.\n\n'
-                                 + 'The patients you have called are:\n' + 
-                                 patient_names)
+                patient_names.append(
+                        '    {}. {} {}'.format(num + 1, first_name, last_name))
+            msg = ['You have exceeded the maximum number of',
+                   'patients that you can call at once. Please',
+                   'finish up and dismiss some of them before',
+                   'calling anyone else', '',
+                   'The ones you have called are:']
+            msg.extend(patient_names)
+            cls.raise_user_error('\n'.join(msg))
 
         # cls.write(queue_entries, {'busy': True})
         # we want to set this to True, but do we want to do it here
