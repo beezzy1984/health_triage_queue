@@ -7,6 +7,7 @@ from trytond.pyson import Eval, Not, Equal, Or, Bool, In, Len
 from .common import (ID_TYPES, SEX_OPTIONS, TRIAGE_MAX_PRIO, TRIAGE_PRIO,
                      MENARCH)
 from trytond.modules.health_jamaica.tryton_utils import get_model_field_perm
+from trytond.modules.health_jamaica.tryton_utils import get_elapsed_time
 from trytond.modules.health_jamaica.tryton_utils import localtime
 
 TRIAGE_STATUS = [
@@ -189,6 +190,8 @@ class TriageEntry(ModelSQL, ModelView):
     post_appointment = fields.Many2One('gnuhealth.appointment', 'Appointment')
     # signed_by = fields.Many2One('gnuhealth.healthprofessional'', 'Signed By')
     # sign_time = fields.DateTime('Signed on')
+    total_time = fields.Function(fields.Char('Triage Time'), 
+                                 'get_triage_time') 
 
     @classmethod
     def __setup__(cls):
@@ -273,6 +276,11 @@ class TriageEntry(ModelSQL, ModelView):
     @staticmethod
     def default_status():
         return 'pending'
+
+    def get_triage_time(self, name):
+        print self.done
+        return get_elapsed_time(self.create_date, self.end_time) \
+        if self.done else get_elapsed_time(self.create_date, datetime.now())
 
     def get_name(self, name):
         if name == 'name':
