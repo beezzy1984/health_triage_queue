@@ -22,6 +22,11 @@
         <label name="status" />
         <field name="status" width="120" />
     </group>
+    <group col="4" colspan="12" id="triage_new_patient_selector"
+        states="{'invisible': Or(~Eval('can_do_details', False), Eval('id', 0) > 0)}">
+        <label name="patient" />
+        <field name="patient" colspan="2" />
+    </group>
     <newline />
     <group col="16" colspan="12" id="triage_sub_header">
         <label name="id_type" />
