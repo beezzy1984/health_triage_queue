@@ -281,7 +281,6 @@ class TriageEntry(ModelSQL, ModelView):
         return 'pending'
 
     def get_triage_time(self, name):
-        print self.done
         return get_elapsed_time(self.create_date, self.end_time) \
         if self.done else get_elapsed_time(self.create_date, datetime.now())
 
