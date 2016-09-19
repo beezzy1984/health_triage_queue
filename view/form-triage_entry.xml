@@ -45,7 +45,7 @@
         <field name="notes" colspan="4" height="140" />
         <field name="note_display" colspan="8" height="140" />
     </group>
-    <group id="grp_symptoms" string="Syndromes/Surveillance" colspan="12" col="10" states="{'invisible': Not(Eval('can_do_details', False))}">
+    <group id="grp_symptoms" string="Syndromes/Surveillance" colspan="12" col="8" states="{'invisible': Not(Eval('can_do_details', False))}">
         <label name="symp_fever" />
         <field name="symp_fever" />
         <label name="symp_respiratory" />
@@ -68,7 +68,7 @@
         <label name="recent_travel_contact" colspan="3" />
         <field name="recent_travel_contact" colspan="5" />
     </group>
-    <group colspan="12" col="8" string="Vital Signs" id="group_vital_signs" states="{'invisible': Not(Eval('can_do_details', False))}">
+    <group colspan="12" col="6" string="Vital Signs" id="group_vital_signs" states="{'invisible': Not(Eval('can_do_details', False))}">
         <label name="temperature"/>
         <field name="temperature"/>
         <label name="systolic"/>
@@ -83,18 +83,18 @@
         <field name="osat"/>
         <label name="glucose" />
         <field name="glucose" />
-        <newline />
         <label name="height" />
         <field name="height" />
         <label name="weight" />
         <field name="weight" />
+        <newline />
         <label name="lmp" />
         <field name="lmp" />
         <label name="pregnant"/>
         <field name="pregnant"/>
         <field name="childbearing_age" invisible="1" />
     </group>
-    <group colspan="12" col="10" string="Urinalysis" id="group_nursing_urinalysis" states="{'invisible': Not(Eval('can_do_details', False))}">
+    <group colspan="12" col="8" string="Urinalysis" id="group_nursing_urinalysis" states="{'invisible': Not(Eval('can_do_details', False))}">
         <label name="uri_blood"/>
         <field name="uri_blood" />
         <label name="uri_nitrite"/>

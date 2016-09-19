@@ -57,6 +57,9 @@ class TriageEntry(ModelSQL, ModelView):
     sex = fields.Selection([(None, '')] + SEX_OPTIONS, 'Sex',
                            states=REQD_IF_NOPATIENT)
     age = fields.Char('Age', states=REQD_IF_NOPATIENT)
+    sex_display = fields.Function(fields.Selection(SEX_OPTIONS, 'Sex'),
+                                  'get_sex_age_display')
+    age_display = fields.Function(fields.Char('Age'), 'get_sex_age_display')
     id_type = fields.Selection(ID_TYPES, 'ID Type', states={
         'required': Bool(Eval('id_number')),
         'readonly': Bool(Eval('patient'))},
@@ -303,7 +306,8 @@ class TriageEntry(ModelSQL, ModelView):
     def get_id_display(self, name):
         idtypedict = dict(ID_TYPES)
         if self.patient:
-            return self.patient.puid
+            return '{} / {}'.format(self.patient.puid,
+                                    self.patient.medical_record_num)
         elif self.id_number and self.id_type:
             return ': '.join([idtypedict.get(self.id_type, '??'),
                               self.id_number])
@@ -336,6 +340,14 @@ class TriageEntry(ModelSQL, ModelView):
             if age < MENARCH[0] or age > MENARCH[1]:
                 return False
         return True
+
+    def get_sex_age_display(self, name):
+        field = name[:3]
+        if self.patient:
+            return getattr(self.patient, field)
+        else:
+            return getattr(self, field)
+
 
     @fields.depends('sex', 'patient')
     def on_change_with_childbearing_age(self, *a, **k):
