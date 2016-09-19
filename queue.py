@@ -18,7 +18,7 @@ QUEUE_ENTRY_STATES = [
 
 APPT_DONE_STATES = ['done', 'user_cancelled', 'center_cancelled', 'no_show']
 TRIAGE_DONE_STATES = ['home', 'incomplete']
-TRIAGE_REG_STATES = ['tobeseen', 'resched', 'referin', 'refer']
+TRIAGE_REG_STATES = ['tobeseen', 'resched', 'referin', 'refer', 'admit']
 QUEUE_ACTIONS = [('call', 'Call'), ('dismiss', 'Dismiss')]
 MAX_QUEUE_CALL = 5
 

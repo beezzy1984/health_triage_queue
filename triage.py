@@ -184,7 +184,7 @@ class TriageEntry(ModelSQL, ModelView):
     _history = True  # enable revision control from core
     can_do_details = fields.Function(fields.Boolean('Can do triage details'),
                                      'get_do_details_perm')
-    first_contact_time = fields.Function(fields.Text('First Contact Time'), 
+    first_contact_time = fields.Function(fields.Text('First Contact Time'),
                                          'get_first_time_contact')
     done = fields.Boolean('Done', states={'invisible': True})
     end_time = fields.DateTime('End Time', help='Date and time triage ended',
@@ -193,8 +193,8 @@ class TriageEntry(ModelSQL, ModelView):
     post_appointment = fields.Many2One('gnuhealth.appointment', 'Appointment')
     # signed_by = fields.Many2One('gnuhealth.healthprofessional'', 'Signed By')
     # sign_time = fields.DateTime('Signed on')
-    total_time = fields.Function(fields.Char('Triage Time'), 
-                                 'get_triage_time') 
+    total_time = fields.Function(fields.Char('Triage Time',
+        states={'invisible': ~Eval('done', False)}), 'get_triage_time')
 
     @classmethod
     def __setup__(cls):
