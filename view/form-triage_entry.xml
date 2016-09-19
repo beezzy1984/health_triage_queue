@@ -1,25 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form string="Triage Entry" col="12">
-    <group col="10" colspan="12" id="triage_header">
-        <label name="patient" />
-        <field name="patient" colspan="2" />
-        <label name="upi" />
-        <field name="upi" />
-        <label name="status" />
-        <field name="status" />
-        <newline />
+    <group col="10" colspan="12" id="triage_header" states="{'invisible': Bool(Eval('patient'))}">
         <label name="lastname" />
-        <group id="g_name_fields" colspan="2" col="3">
-            <field name="lastname" />
-            <label name="firstname" />
-            <field name="firstname" />
-        </group>
-        <label name="sex" />
-        <field name="sex" />
+        <field name="lastname" />
+        <label name="firstname" />
+        <field name="firstname" width="120" />
+        <field name="sex" width="80" />
         <label name="age" />
-        <field name="age" />
-        <field name="can_do_details" invisible="1" />
-        <field name="done" invisible="1" />
+        <field name="age" width="40" />
+        <label name="status" />
+        <field name="status" width="120" />
+    </group>
+    <group col="10" colspan="12" id="triage_header_patient" states="{'invisible': Not(Bool(Eval('patient')))}">
+        <field name="patient" colspan="2" />
+        <label name="id_display" />
+        <field name="id_display" />
+        <label name="sex_display" />
+        <field name="sex_display" width="70" />
+        <label name="age_display" />
+        <field name="age_display" width="60" />
+        <label name="status" />
+        <field name="status" width="120" />
     </group>
     <newline />
     <group col="16" colspan="12" id="triage_sub_header">
@@ -129,4 +130,6 @@
         <button name="go_referral" help="Go to referral" string="Referra_l" icon="health-referral" />
         <button name="set_done" help="Click to mark triage as done." string="Fi_nish" icon="tryton-go-next" />
     </group>
+        <field name="can_do_details" invisible="1" />
+        <field name="done" invisible="1" />
 </form>

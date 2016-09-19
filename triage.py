@@ -67,7 +67,7 @@ class TriageEntry(ModelSQL, ModelView):
         sort=False)
     id_number = fields.Char('ID Number',
             states={'readonly': Or(Bool(Eval('patient')), Eval('done', False))})
-    id_display = fields.Function(fields.Char('ID Display'), 'get_id_display',
+    id_display = fields.Function(fields.Char('UPI/MRN'), 'get_id_display',
                                  searcher='search_id')
     patient = fields.Many2One('gnuhealth.patient', 'Patient',
             states={'readonly': Or(~Eval('can_do_details', False),
@@ -306,6 +306,7 @@ class TriageEntry(ModelSQL, ModelView):
         fld, operator, operand = clause
         return ['OR'
                 ('patient.name.upi', operator, operand),
+                ('patient.medical_record_num', operator, operand),
                 ('id_number', operator, operand)]
 
     @classmethod
