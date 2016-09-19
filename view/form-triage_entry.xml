@@ -119,11 +119,13 @@
             <field name="uri_specific_gravity"/>
         <!-- </group> -->
     </group>
-    <group id="group_triage_foot" colspan="12" col="6">
+    <group id="group_triage_foot" colspan="12" col="8">
         <label name="institution" />
         <field name="institution" />
         <label name="end_time" />
         <field name="end_time" />
+        <label name="total_time" />
+        <field name="total_time" />
         <button name="go_referral" help="Go to referral" string="Referra_l" icon="health-referral" />
         <button name="set_done" help="Click to mark triage as done." string="Fi_nish" icon="tryton-go-next" />
     </group>

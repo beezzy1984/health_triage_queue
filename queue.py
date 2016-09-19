@@ -2,8 +2,9 @@
 from datetime import datetime
 from trytond.pool import Pool
 from trytond.model import ModelView, ModelSQL, fields
-from trytond.pyson import Eval, Not, Equal, Or, Greater, In, Len, And
+from trytond.pyson import Eval, Not, Equal, Or, Greater, In, Len, And, Bool
 from trytond.modules.health_jamaica.tryton_utils import localtime, get_elapsed_time, get_timezone
+from trytond.transaction import Transaction
 from .common import APM, SEX_OPTIONS, TRIAGE_MAX_PRIO
 
 QUEUE_ENTRY_STATES = [
@@ -19,6 +20,7 @@ APPT_DONE_STATES = ['done', 'user_cancelled', 'center_cancelled', 'no_show']
 TRIAGE_DONE_STATES = ['home', 'incomplete']
 TRIAGE_REG_STATES = ['tobeseen', 'resched', 'referin', 'refer']
 QUEUE_ACTIONS = [('call', 'Call'), ('dismiss', 'Dismiss')]
+MAX_QUEUE_CALL = 5
 
 class QueueEntry(ModelSQL, ModelView):
     'Queue Entry'
@@ -99,8 +101,8 @@ class QueueEntry(ModelSQL, ModelView):
                                      Equal('99', Eval('entry_state', '0')))},
             btn_dismiss={'readonly': Not(Eval('busy', False))},
             btn_setup_appointment={
-                'invisible': ~In(Eval('triage_status'),
-                                 ['tobeseen', 'resched'])
+                'invisible': Or(Bool(Eval('appointment')),
+                                ~Equal('20', Eval('entry_state', '0')))
             })
         cls._sql_constraints += [
             ('triage_uniq', 'UNIQUE(triage_entry)',
@@ -440,6 +442,24 @@ class QueueEntry(ModelSQL, ModelView):
     @classmethod
     @ModelView.button_action('health_triage_queue.act_queue_call_starter')
     def btn_call(cls, queue_entries):
+        user = Transaction().user
+        queue_model = Pool().get('gnuhealth.patient.queue_entry')
+        patients_called_by_user = queue_model.search(
+                ['AND', ('busy', '=', True), ('write_uid', '=', user)])
+        if len(patients_called_by_user) >= MAX_QUEUE_CALL:
+            patient_names = []
+            for num, patient in enumerate(patients_called_by_user):
+                (last_name, first_name) = patient.name.split(',')
+                patient_names.append(
+                        '    {}. {} {}'.format(num + 1, first_name, last_name))
+            msg = ['You have exceeded the maximum number of',
+                   'patients that you can call at once. Please',
+                   'finish up and dismiss some of them before',
+                   'calling anyone else', '',
+                   'The ones you have called are:']
+            msg.extend(patient_names)
+            cls.raise_user_error('\n'.join(msg))
+
         # cls.write(queue_entries, {'busy': True})
         # we want to set this to True, but do we want to do it here
         # or should we do it after the thing launched has been saved or
