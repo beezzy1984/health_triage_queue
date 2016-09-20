@@ -212,6 +212,7 @@ class QueueEntry(ModelSQL, ModelView):
                 end = now
             return (start, end)
         Now = datetime.now()
+
         def dmapper(i):
             return (int(i), get_elapsed_time(*iget_start_end(i, Now)))
 
