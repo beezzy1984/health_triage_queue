@@ -52,15 +52,13 @@
         <label name="referer_sign_date" />
         <field name="referer_sign_date" />
         <button icon="health-certify" name="btn_sign_local" string="Sign"
-            help="Lock changes and enable the record to be sent off." 
-            xexpand="0" xalign="1.0" />
+            help="Lock changes and enable the record to be sent off." />
         <newline />
         <label name="referee" />
         <field name="referee" />
         <label name="referee_sign_date" />
         <field name="referee_sign_date" />
         <button icon="health-certify" name="btn_sign_target" string="Sign"
-            help="Lock changes and enable the record to be sent off." 
-            xexpand="0" xalign="1.0" />
+            help="Lock changes and enable the record to be sent off." />
     </group>
 </form>
