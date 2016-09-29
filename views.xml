@@ -98,13 +98,18 @@
         <record model="ir.action.act_window.domain" id="health_actwindom-queue-busy">
             <field name="name">Called</field>
             <field name="domain">[('busy', '=', True)]</field>
-            <field name="sequence" eval="9990" />
+            <field name="sequence" eval="990" />
             <field name="act_window" ref="health_actwin_queue_entry" />
         </record>
         <record model="ir.action.act_window.domain" id="health_actwindom-queue-all">
             <field name="name">Completed</field>
             <field name="domain">[('busy', '=', False), ('entry_state', '=', '99')]</field>
-            <field name="sequence" eval="9999" />
+            <field name="sequence" eval="998" />
+            <field name="act_window" ref="health_actwin_queue_entry" />
+        </record>
+        <record model="ir.action.act_window.domain" id="health_actwindom-queue">
+            <field name="name">All</field>
+            <field name="sequence" eval="999" />
             <field name="act_window" ref="health_actwin_queue_entry" />
         </record>
 
@@ -150,6 +155,11 @@
             <field name="name">Closed</field>
             <field name="domain">[('done', '=', True)]</field>
             <field name="sequence" eval="50" />
+            <field name="act_window" ref="health_actwin_triage_entry" />
+        </record>
+        <record model="ir.action.act_window.domain" id="health_actwindom-triage-all">
+            <field name="name">All</field>
+            <field name="sequence" eval="900" />
             <field name="act_window" ref="health_actwin_triage_entry" />
         </record>
         <menuitem id="health_menu_patient_triage"
