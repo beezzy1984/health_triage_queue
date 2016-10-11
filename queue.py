@@ -38,7 +38,7 @@ class QueueEntry(ModelSQL, ModelView):
     encounter = fields.Many2One('gnuhealth.encounter', 'Encounter',
                                 states={'invisible': True})
     busy = fields.Boolean('Busy', states={'readonly': True}, select=True)
-    called_by_me = fields.Function(fields.Boolean('Called By Me', 
+    called_by_me = fields.Function(fields.Boolean('Last Called By Me', 
                                                   states={'readonly': True}, 
                                                   select=True)
                                    , 'get_called_by_me')
@@ -507,10 +507,7 @@ class QueueEntry(ModelSQL, ModelView):
 
     def get_called_by(self, name):
         '''gets the user who call the selected patient'''
-        if self.appointment:
-            return self.write_uid.name
-        elif self.triage_entry:
-            return self.write_uid.name
+        return self.write_uid.name if self.write_uid else ''
 
 
     def get_called_by_me(self, name):
@@ -518,7 +515,7 @@ class QueueEntry(ModelSQL, ModelView):
            called by the current user. Returns true if yes and 
            false otherwise'''
         user = Transaction().user
-        return self.write_uid.id == user
+        return self.write_uid.id == user if self.write_uid else False
 
 class QueueEntryNote(ModelView, ModelSQL):
     'Line Note'
