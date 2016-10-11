@@ -31,10 +31,16 @@
             <field name="triage_status" invisible="1" />
         </group>
         <group id="queue_item_buttons" col="2" colspan="1">
-            <label name="priority" />
-            <field name="priority" />
-            <label name="busy" />
-            <field name="busy" />
+            <group id="states_chechbox" col="4" colspan="2">
+                <label name="priority" />
+                <field name="priority" />
+                <label name="busy" />
+                <field name="busy" />
+                <label name="called_by" />
+                <field name="called_by" />
+                <label name="called_by_me" />
+                <field name="called_by_me" />
+            </group>
             <label name="entry_state" />
             <field name="entry_state" />
 
