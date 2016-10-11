@@ -38,6 +38,14 @@ class QueueEntry(ModelSQL, ModelView):
     encounter = fields.Many2One('gnuhealth.encounter', 'Encounter',
                                 states={'invisible': True})
     busy = fields.Boolean('Busy', states={'readonly': True}, select=True)
+    called_by_me = fields.Function(fields.Boolean('Called By Me', 
+                                                  states={'readonly': True}, 
+                                                  select=True)
+                                   , 'get_called_by_me')
+    called_by = fields.Function(fields.Char('Last Called By', 
+                                            states={'readonly': True}, 
+                                            select=True)
+                                , 'get_called_by')
     line_notes = fields.Text('Line notes',
                              help="Quick note about this line/patient")
     encounter_components = fields.Function(
@@ -99,7 +107,8 @@ class QueueEntry(ModelSQL, ModelView):
             btn_inspect={},
             btn_call={'readonly': Or(Eval('busy', False),
                                      Equal('99', Eval('entry_state', '0')))},
-            btn_dismiss={'readonly': Not(Eval('busy', False))},
+            btn_dismiss={'readonly': Not(Eval('busy', False)), 
+                         'invisible': Not(Eval('called_by_me', False))},
             btn_setup_appointment={
                 'invisible': Or(Bool(Eval('appointment')),
                                 ~Equal('20', Eval('entry_state', '0')))
@@ -496,6 +505,20 @@ class QueueEntry(ModelSQL, ModelView):
             return self.appointment.visit_reason.id
         return None
 
+    def get_called_by(self, name):
+        '''gets the user who call the selected patient'''
+        if self.appointment:
+            return self.write_uid.name
+        elif self.triage_entry:
+            return self.write_uid.name
+
+
+    def get_called_by_me(self, name):
+        '''Determines if the carrent selected patient has been 
+           called by the current user. Returns true if yes and 
+           false otherwise'''
+        user = Transaction().user
+        return self.write_uid.id == user
 
 class QueueEntryNote(ModelView, ModelSQL):
     'Line Note'
