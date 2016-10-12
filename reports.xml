@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- 
+    Author: Randy Burrell
+    Date: 2016/10/11
+-->
+<tryton>
+    <data>
+    <!-- Triage Report -->
+        <record model="ir.action.report" id="health_triage_report_patient">
+            <field name="name">Triaged Report</field>
+            <field name="report_name">gnuhealth.triage.entry.report</field>
+            <field name="model">gnuhealth.triage.entry</field>
+            <field name="active" eval="True" />
+            <field name="report">health_triage_queue/report/triage_entry_facesheet.odt</field>
+            <field name="template_extension">odt</field>
+            <field name="extension"></field>
+        </record>
+        <record model="ir.action.keyword" id="jm_triage_facesheet">
+            <field name="keyword">form_print</field>
+            <field name="model">gnuhealth.triage.entry,-1</field>
+            <field name="action" ref="health_triage_report_patient"/>
+        </record>
+    </data>
+</tryton>
