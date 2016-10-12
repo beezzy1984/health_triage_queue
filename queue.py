@@ -39,7 +39,11 @@ class QueueEntry(ModelSQL, ModelView):
                                 states={'invisible': True})
     busy = fields.Boolean('Busy', states={'readonly': True}, select=True)
     called_by_me = fields.Function(fields.Boolean('Last Called By Me', 
-                                                  states={'readonly': True}, 
+                                                  states={'readonly': True,
+                                                          'invisible': 
+                                                          Not(Eval('called_by_me', 
+                                                                   False))
+                                                         }, 
                                                   select=True)
                                    , 'get_called_by_me')
     called_by = fields.Function(fields.Char('Last Called By', 
