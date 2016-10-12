@@ -7,9 +7,11 @@ from .referral import PatientReferral
 from .wizards import (QueueInspectWizard, QueueCallWizard, QueueDismissWizard,
                       AppointmentSetup, QueueAppointmentWizard,
                       TriageReferWizard)
+from .reports import TriageReport
 
 
 def register():
+    """Registers classes to tryton's pool"""
     Pool.register(TriageEntry,
                   TriageNote,
                   QueueEntry,
@@ -27,3 +29,7 @@ def register():
                   QueueAppointmentWizard,
                   TriageReferWizard,
                   module='health_triage_queue', type_='wizard')
+
+    Pool.register(
+        TriageReport,
+        module='health_triage_queue', type_='report')
