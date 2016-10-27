@@ -7,7 +7,7 @@
     <data>
     <!-- Triage Report -->
         <record model="ir.action.report" id="health_triage_report_patient">
-            <field name="name">Triaged Report</field>
+            <field name="name">Triage Report</field>
             <field name="report_name">gnuhealth.triage.entry.report</field>
             <field name="model">gnuhealth.triage.entry</field>
             <field name="active" eval="True" />
