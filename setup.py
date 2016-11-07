@@ -86,6 +86,6 @@ setup(
     [trytond.modules]
     health_triage_queue = trytond.modules.health_triage_queue
     """,
-    # test_suite='tests',
-    # test_loader='trytond.test_loader:Loader',
+    test_suite='tests',
+    test_loader='trytond.test_loader:Loader',
 )
